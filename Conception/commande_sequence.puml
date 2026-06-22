@@ -31,7 +31,7 @@ end
 
 alt commande est "En attente de confirmation"
     Admin -> UI : confirmer commande(id)
-    UI -> CC : PATCH /commandes/{id}/confirm
+    UI -> CC : POST /commandes/{id}/confirm
     CC -> C : confirmCommande(id)
     C -> DB : UPDATE état = "Confirmée" WHERE id
     DB --> C : ok
@@ -41,7 +41,7 @@ alt commande est "En attente de confirmation"
 
 else commande déjà "Confirmée"
     Admin -> UI : confirmer commande(id)
-    UI -> CC : PATCH /commandes/{id}/confirm
+    UI -> CC : POST /commandes/{id}/confirm
     CC -> C : confirmCommande(id)
     C -> DB : SELECT état WHERE id
     DB --> C : état = "Confirmée"

@@ -1,6 +1,6 @@
 # Système de Gestion d'Usine — Plateforme SaaS
 
-> Projet universitaire — Application web de gestion industrielle multi-tenant
+> Projet universitaire — Application web de gestion industrielle multi-tenant \n
 > Equipe de Projet: ENNAJAH Malek, SBAYI Douae, ELHOUDAIGUI Ilyas, MEJBER Ahmed Amine
 ---
 

@@ -99,16 +99,5 @@ Déploiement (OpenShift / Kubernetes)
 
 ---
 
-## 🛠️ Stack technique (envisagée)
-
-- **Backend** : REST API (Spring Boot / Node.js / Django)
-- **Frontend** : React / Angular
-- **Base de données** : PostgreSQL / MySQL
-- **Conteneurisation** : Docker
-- **Orchestration** : OpenShift ou Kubernetes
-- **CI/CD** : GitLab CI / GitHub Actions / Jenkins
-- **Qualité & Sécurité** : SonarQube, OWASP, Semgrep/Trivy
-
----
 
 *Projet réalisé dans le cadre du cursus universitaire — Département Informatique*

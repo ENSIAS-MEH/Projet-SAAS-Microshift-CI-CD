@@ -1,0 +1,74 @@
+@startuml
+class User {
+  + Id : Integer
+  + Username : String
+  + Password : String
+  + Name : String
+  + Contact : String
+  + Email : String
+  + method(type): type
+}
+
+class Roles {
+  + Id : Integer
+  + User_id : Integer
+  + Ajoute_commande : Bool
+  + Modifier_commande : Bool
+  + Annuler_commande : Bool
+  + Ajout_produit : Bool
+  + Modifier_produit : Bool
+  + Suprimer_produit : Bool
+  + Is_Administrator : Bool
+  + method(type): type
+}
+
+class Produit {
+  + Id : Integer
+  + Nom : String
+  + Quantity : Integer
+  + Unit_price : Double
+  + Description : String
+  + method(type): type
+}
+
+class Commande {
+  + Id : Integer
+  + Produit_id : Integer
+  + Description : String
+  + Prix_totale : Double
+  + Quantity_de_commande : Integer
+  + Etat_Commande : String
+  + method(type): type
+}
+
+class Historique {
+  + Id : Integer
+  + User_id : Integer
+  + Description : String
+  + Temp : TimeStamp
+  + Date : Date
+  + method(type): type
+}
+
+class Historique_Commandes {
+  + Id : Integer
+  + Historique_id : Integer
+  + Commande_id : Integer
+  + method(type): type
+}
+
+class Historique_Produit {
+  + Id : Integer
+  + Historique_id : Integer
+  + Produit_id : Integer
+  + method(type): type
+}
+
+User "1" -- "1" Roles
+User "1" -- "+" Historique
+Historique "1" -- "1" Historique_Commandes
+Historique "1" -- "1" Historique_Produit
+Historique_Commandes "1" -- "1" Commande
+Historique_Produit "+" -- "1" Produit
+Commande "+" -- "1" Produit
+@enduml

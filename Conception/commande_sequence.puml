@@ -1,0 +1,52 @@
+@startuml
+actor User
+actor Admin
+participant "Interface Utilisateur" as UI
+participant "CommandeController" as CC
+participant "Commande" as C
+database "Database" as DB
+
+== Création de commande ==
+
+User -> UI : soumettre commande
+UI -> CC : POST /commandes (produit_id, quantité)
+CC -> C : createCommande(produit_id, quantité)
+
+alt utilisateur est Administrateur
+    C -> DB : INSERT commande (état = "Confirmée")
+    DB --> C : commande_id
+    C --> CC : Commande{id, état="Confirmée"}
+    CC --> UI : 201 Created
+    UI --> User : "Commande confirmée automatiquement"
+
+else utilisateur est User standard
+    C -> DB : INSERT commande (état = "En attente de confirmation")
+    DB --> C : commande_id
+    C --> CC : Commande{id, état="En attente de confirmation"}
+    CC --> UI : 201 Created
+    UI --> User : "Commande en attente de confirmation"
+end
+
+== Confirmation de commande ==
+
+alt commande est "En attente de confirmation"
+    Admin -> UI : confirmer commande(id)
+    UI -> CC : PATCH /commandes/{id}/confirm
+    CC -> C : confirmCommande(id)
+    C -> DB : UPDATE état = "Confirmée" WHERE id
+    DB --> C : ok
+    C --> CC : Commande{id, état="Confirmée"}
+    CC --> UI : 200 OK
+    UI --> Admin : "Commande confirmée"
+
+else commande déjà "Confirmée"
+    Admin -> UI : confirmer commande(id)
+    UI -> CC : PATCH /commandes/{id}/confirm
+    CC -> C : confirmCommande(id)
+    C -> DB : SELECT état WHERE id
+    DB --> C : état = "Confirmée"
+    C --> CC : erreur
+    CC --> UI : 400 Bad Request
+    UI --> Admin : "Commande déjà confirmée"
+end
+@enduml

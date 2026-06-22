@@ -97,7 +97,3 @@ Déploiement (OpenShift / Kubernetes)
 | `Historique_Commandes` | lien historique ↔ commande |
 | `Historique_Stockage` | lien historique ↔ produit |
 
----
-
-
-*Projet réalisé dans le cadre du cursus universitaire — Département Informatique*

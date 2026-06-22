@@ -1,0 +1,74 @@
+@startuml
+left to right direction
+
+actor "Super Administrateur" as SuperAdmin
+actor "Administrateur (Plateforme)" as Admin
+actor "User (Plateforme)" as User
+actor "Analyste de Securite (Plateforme)" as Analyste
+
+rectangle "Plateforme" {
+
+  usecase "Authentification au niveau de plateforme" as UC_AuthPlat
+  usecase "Authentification Serveur" as UC_AuthServ
+
+  usecase "Gestion des Roles des Utilisateurs" as UC_Roles
+  usecase "Modification des donnees des users" as UC_ModifUsers
+  usecase "Voir Historique des mouvements des utilisateurs" as UC_Historique
+
+  usecase "Consultation des dashboards des Resources" as UC_DashRes
+  usecase "Consultation des dashboards des commandes" as UC_DashCmd
+  usecase "Ajout des nouvelles materielles" as UC_AjoutMat
+  usecase "Gestion des commandes" as UC_GestCmd
+  usecase "Modification des donnees Personnel" as UC_ModifPerso
+
+  usecase "Ajout des Plateformes / services" as UC_AjoutPlat
+  usecase "Gestion des Services" as UC_GestServ
+
+  usecase "Gestion des logs" as UC_Logs
+  usecase "Declarer des Intrusions" as UC_Intrusions
+  usecase "Bloquer des adresses IP" as UC_BloquerIP
+  usecase "Signaler Pour l'administrateur" as UC_Signaler
+}
+
+' Admin extends User (inheritance)
+Admin --|> User
+
+' Super Admin actions
+SuperAdmin --> UC_AjoutPlat
+SuperAdmin --> UC_GestServ
+SuperAdmin --> Analyste
+
+' Admin actions
+Admin --> UC_Roles
+Admin --> UC_Historique
+Admin --> UC_ModifUsers
+
+' User actions
+User --> UC_DashRes
+User --> UC_DashCmd
+User --> UC_AjoutMat
+User --> UC_GestCmd
+User --> UC_ModifPerso
+
+' Analyste actions
+Analyste --> UC_Logs
+Analyste --> UC_Intrusions
+Analyste --> UC_BloquerIP
+Analyste --> UC_Signaler
+
+' Include relationships (auth required)
+UC_Roles ..> UC_AuthPlat : <<include>>
+UC_Historique ..> UC_AuthPlat : <<include>>
+UC_ModifUsers ..> UC_AuthPlat : <<include>>
+UC_DashRes ..> UC_AuthPlat : <<include>>
+UC_DashCmd ..> UC_AuthPlat : <<include>>
+UC_GestCmd ..> UC_AuthPlat : <<include>>
+UC_ModifPerso ..> UC_AuthPlat : <<include>>
+
+UC_AjoutPlat ..> UC_AuthServ : <<include>>
+UC_GestServ ..> UC_AuthServ : <<include>>
+UC_BloquerIP ..> UC_AuthServ : <<include>>
+UC_Logs ..> UC_AuthServ : <<include>>
+UC_Intrusions ..> UC_AuthServ : <<include>>
+UC_Signaler ..> UC_AuthServ : <<include>>
+@enduml

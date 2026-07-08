@@ -1,0 +1,16 @@
+target/
+*.class
+*.jar
+*.war
+*.log
+.idea/
+*.iml
+.settings/
+.project
+.classpath
+bin/
+*.swp
+*.swo
+.DS_Store
+springboot-adminlte-thymeleaf-master/
+src/desiredcontent/

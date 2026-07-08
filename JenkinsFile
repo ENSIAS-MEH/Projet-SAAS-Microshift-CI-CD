@@ -9,8 +9,7 @@ pipeline {
     stages {
         stage('build') {
             steps {
-                sh "docker compose -f Application/CI/docker-compose.yml build"
-            }
+                sh "docker compose -f Application/src/CI/docker-compose.yml build"            }
         }
     }
 }

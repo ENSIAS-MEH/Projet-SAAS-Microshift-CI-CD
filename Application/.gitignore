@@ -13,3 +13,4 @@ bin/
 *.swo
 .DS_Store
 springboot-adminlte-thymeleaf-master/
+src/desiredcontent/

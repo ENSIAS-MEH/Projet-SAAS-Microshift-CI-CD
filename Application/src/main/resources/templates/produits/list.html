@@ -33,7 +33,7 @@
                         <th>ID</th>
                         <th>Nom</th>
                         <th>Description</th>
-                        <th>Prix</th>
+                        <th>Prix unitaire</th>
                         <th>Quantité</th>
                         <th>Actions</th>
                     </tr>
@@ -43,8 +43,9 @@
                         <td th:text="${produit.id}">1</td>
                         <td th:text="${produit.nom}">Nom</td>
                         <td th:text="${produit.description}">Description</td>
-                        <td th:text="${produit.prix}">0.00</td>
-                        <td th:text="${produit.quantite}">0</td>
+                        <td th:text="${#numbers.formatDecimal(produit.prixUnitaire, 1, 2)} + ' DH'">0.00</td>
+                        <td th:text="${produit.quantite}"
+                            th:classappend="${produit.quantite <= 5} ? 'text-danger fw-bold' : ''">0</td>
                         <td>
                             <a th:href="@{/produits/edit/{id}(id=${produit.id})}" class="btn btn-xs btn-info">
                                 <i class="fa fa-edit"></i> Edit

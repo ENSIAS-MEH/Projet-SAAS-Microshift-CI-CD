@@ -1,19 +1,9 @@
- 
 DROP DATABASE IF EXISTS projetweb;
 CREATE DATABASE projetweb CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE projetweb;
- 
-CREATE TABLE usine (
-    id              INT AUTO_INCREMENT PRIMARY KEY,
-    nom             VARCHAR(150) NOT NULL,
-    namespace_k8s   VARCHAR(100) UNIQUE,         
-    actif           BOOLEAN DEFAULT TRUE,
-    date_creation   DATETIME DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
- 
+
 CREATE TABLE user (
     id              INT AUTO_INCREMENT PRIMARY KEY,
-    usine_id        INT NOT NULL,
     username        VARCHAR(80) NOT NULL,
     password        VARCHAR(255) NOT NULL,       
     nom             VARCHAR(100),
@@ -22,8 +12,7 @@ CREATE TABLE user (
     is_admin        BOOLEAN DEFAULT FALSE,
     actif           BOOLEAN DEFAULT TRUE,
     date_creation   DATETIME DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_user_usine FOREIGN KEY (usine_id) REFERENCES usine(id) ON DELETE CASCADE,
-    CONSTRAINT uq_user_usine UNIQUE (usine_id, username)
+    CONSTRAINT uq_user_username UNIQUE (username)
 ) ENGINE=InnoDB;
 
 CREATE TABLE roles (
@@ -40,20 +29,17 @@ CREATE TABLE roles (
 ) ENGINE=InnoDB;
  
 CREATE TABLE produit (
-    id              INT AUTO_INCREMENT PRIMARY KEY,
-    usine_id        INT NOT NULL,
+    id              INT AUTO_INCREMENT PRIMARY KEY, 
     nom             VARCHAR(150) NOT NULL,
     quantite        INT DEFAULT 0,
     prix_unitaire   DECIMAL(10,2) NOT NULL,
     description     TEXT,
     date_creation   DATETIME DEFAULT CURRENT_TIMESTAMP,
-    date_maj        DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT fk_produit_usine FOREIGN KEY (usine_id) REFERENCES usine(id) ON DELETE CASCADE
+    date_maj        DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
  
 CREATE TABLE commande (
-    id              INT AUTO_INCREMENT PRIMARY KEY,
-    usine_id        INT NOT NULL,
+    id              INT AUTO_INCREMENT PRIMARY KEY, 
     produit_id      INT NOT NULL,
     user_id         INT NOT NULL,                
     quantite        INT NOT NULL,
@@ -61,19 +47,16 @@ CREATE TABLE commande (
     etat            ENUM('EN_ATTENTE','VALIDEE','EXPEDIEE','ANNULEE') DEFAULT 'EN_ATTENTE',
     date_creation   DATETIME DEFAULT CURRENT_TIMESTAMP,
     date_maj        DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    CONSTRAINT fk_commande_usine   FOREIGN KEY (usine_id) REFERENCES usine(id) ON DELETE CASCADE,
     CONSTRAINT fk_commande_produit FOREIGN KEY (produit_id) REFERENCES produit(id),
     CONSTRAINT fk_commande_user    FOREIGN KEY (user_id) REFERENCES user(id)
 ) ENGINE=InnoDB;
  
 CREATE TABLE historique (
     id              INT AUTO_INCREMENT PRIMARY KEY,
-    usine_id        INT NOT NULL,
     user_id         INT,                        
     description     VARCHAR(500) NOT NULL,
     type_action     ENUM('USER','COMMANDE','STOCK','SECURITE','AUTRE') DEFAULT 'AUTRE',
     timestamp       DATETIME DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_hist_usine FOREIGN KEY (usine_id) REFERENCES usine(id) ON DELETE CASCADE,
     CONSTRAINT fk_hist_user  FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
@@ -114,14 +97,11 @@ CREATE TABLE intrusion (
     traite          BOOLEAN DEFAULT FALSE
 ) ENGINE=InnoDB;
  
-CREATE INDEX idx_produit_usine   ON produit(usine_id);
-CREATE INDEX idx_commande_usine  ON commande(usine_id);
 CREATE INDEX idx_commande_etat   ON commande(etat);
-CREATE INDEX idx_hist_usine_ts   ON historique(usine_id, timestamp);
+CREATE INDEX idx_hist_ts         ON historique(timestamp);
  
-INSERT INTO usine (nom, namespace_k8s) VALUES ('Usine Demo', 'usine-demo');
-INSERT INTO user (usine_id, username, password, nom, contact, email, is_admin)
-VALUES (1, 'admin', '$2a$10$ik0xEVRnr0FS1UHNLwvNuObWT1NzjRXWSGev8n5Bye0xgmAbFSbTu', 'Administrateur', '0600000000', 'admin@demo.local', TRUE);
+INSERT INTO user (username, password, nom, contact, email, is_admin)
+VALUES ('admin', '$2a$10$ik0xEVRnr0FS1UHNLwvNuObWT1NzjRXWSGev8n5Bye0xgmAbFSbTu', 'Administrateur', '0600000000', 'admin@demo.local', TRUE);
 INSERT INTO roles (user_id, peut_ajouter_commande, peut_modifier_commande, peut_annuler_commande,
                     peut_ajouter_produit, peut_modifier_produit, peut_supprimer_produit, est_admin)
 VALUES (1, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE);

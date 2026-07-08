@@ -1,53 +1,72 @@
 package com.jeemobile.application.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Positive;
 
 import java.math.BigDecimal;
+import java.io.Serializable;
+import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "produits")
-public class Produit {
+@Table(name = "produit")
+public class Produit implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
 
-    @NotBlank
-    @Column(nullable = false)
+    @Column(nullable = false, length = 150)
     private String nom;
 
+    @Column(nullable = false)
+    private Integer quantite = 0;
+
+    @Column(name = "prix_unitaire", nullable = false, precision = 10, scale = 2)
+    private BigDecimal prixUnitaire;
+
+    @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Positive
-    @Column(nullable = false)
-    private BigDecimal prix;
+    @Column(name = "date_creation")
+    private LocalDateTime dateCreation;
 
-    @Column(nullable = false)
-    private int quantite;
+    @Column(name = "date_maj")
+    private LocalDateTime dateMaj;
 
     public Produit() {}
 
-    public Produit(String nom, String description, BigDecimal prix, int quantite) {
-        this.nom = nom;
-        this.description = description;
-        this.prix = prix;
-        this.quantite = quantite;
-    }
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public Integer getId() { return id; }
+    public void setId(Integer id) { this.id = id; }
 
     public String getNom() { return nom; }
     public void setNom(String nom) { this.nom = nom; }
 
+    public Integer getQuantite() { return quantite; }
+    public void setQuantite(Integer quantite) { this.quantite = quantite; }
+
+    public BigDecimal getPrixUnitaire() { return prixUnitaire; }
+    public void setPrixUnitaire(BigDecimal prixUnitaire) { this.prixUnitaire = prixUnitaire; }
+
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
 
-    public BigDecimal getPrix() { return prix; }
-    public void setPrix(BigDecimal prix) { this.prix = prix; }
+    public LocalDateTime getDateCreation() { return dateCreation; }
+    public void setDateCreation(LocalDateTime dateCreation) { this.dateCreation = dateCreation; }
 
-    public int getQuantite() { return quantite; }
-    public void setQuantite(int quantite) { this.quantite = quantite; }
+    public LocalDateTime getDateMaj() { return dateMaj; }
+    public void setDateMaj(LocalDateTime dateMaj) { this.dateMaj = dateMaj; }
+
+    @PrePersist
+    protected void onCreate() {
+        LocalDateTime now = LocalDateTime.now();
+        this.dateCreation = now;
+        this.dateMaj = now;
+        if (this.quantite == null) {
+            this.quantite = 0;
+        }
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.dateMaj = LocalDateTime.now();
+    }
 }

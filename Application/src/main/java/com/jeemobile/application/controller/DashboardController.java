@@ -1,13 +1,11 @@
 package com.jeemobile.application.controller;
 
-import com.jeemobile.application.dto.PieChartData;
 import com.jeemobile.application.service.DashboardService;
 import com.jeemobile.application.service.ProduitService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
 @RequestMapping("/dashboard")
@@ -23,20 +21,9 @@ public class DashboardController {
 
     @GetMapping
     public String dashboard(Model model) {
+        model.addAttribute("dashboard", dashboardService.getDashboard(null));
         model.addAttribute("totalProduits", dashboardService.getTotalProduits());
         model.addAttribute("produits", produitService.findAll());
         return "dashboard";
-    }
-
-    @GetMapping("/data/prix")
-    @ResponseBody
-    public PieChartData repartitionPrix() {
-        return dashboardService.getRepartitionPrix();
-    }
-
-    @GetMapping("/data/stock")
-    @ResponseBody
-    public PieChartData repartitionStock() {
-        return dashboardService.getRepartitionStock();
     }
 }

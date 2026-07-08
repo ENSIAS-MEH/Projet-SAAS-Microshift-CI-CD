@@ -1,18 +1,18 @@
 package com.jeemobile.application.service;
 
 import com.jeemobile.application.dao.ProduitRepository;
-import com.jeemobile.application.dto.PieChartData;
+import com.jeemobile.application.dto.DashboardDTO;
+import com.jeemobile.application.dto.ProduitResponseDTO;
 import com.jeemobile.application.entity.Produit;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 @Service
 public class DashboardService {
+
+    private static final int SEUIL_RUPTURE_PAR_DEFAUT = 5;
 
     private final ProduitRepository produitRepository;
 
@@ -20,53 +20,31 @@ public class DashboardService {
         this.produitRepository = produitRepository;
     }
 
-    public PieChartData getRepartitionPrix() {
-        Map<String, Long> categories = new LinkedHashMap<>(
-                Map.of("Économique (< 50)", 0L, "Standard (50-200)", 0L, "Premium (> 200)", 0L)
-        );
+    public DashboardDTO getDashboard(Integer seuilRupture) {
+        int seuil = (seuilRupture != null) ? seuilRupture : SEUIL_RUPTURE_PAR_DEFAUT;
+        List<Produit> produits = produitRepository.findAll();
 
-        for (Produit p : produitRepository.findAll()) {
-            String cat;
-            if (p.getPrix().compareTo(new BigDecimal("50")) < 0) {
-                cat = "Économique (< 50)";
-            } else if (p.getPrix().compareTo(new BigDecimal("200")) <= 0) {
-                cat = "Standard (50-200)";
-            } else {
-                cat = "Premium (> 200)";
-            }
-            categories.merge(cat, 1L, Long::sum);
-        }
+        long quantiteTotale = produits.stream().mapToLong(Produit::getQuantite).sum();
 
-        return new PieChartData(
-                new ArrayList<>(categories.keySet()),
-                new ArrayList<>(categories.values())
-        );
-    }
+        BigDecimal valeurTotale = produits.stream()
+                .map(p -> p.getPrixUnitaire().multiply(BigDecimal.valueOf(p.getQuantite())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-    public PieChartData getRepartitionStock() {
-        Map<String, Long> categories = new LinkedHashMap<>(
-                Map.of("Faible (< 10)", 0L, "Moyen (10-50)", 0L, "Élevé (> 50)", 0L)
-        );
+        List<ProduitResponseDTO> enRupture = produits.stream()
+                .filter(p -> p.getQuantite() <= seuil)
+                .map(this::toDTO)
+                .toList();
 
-        for (Produit p : produitRepository.findAll()) {
-            String cat;
-            if (p.getQuantite() < 10) {
-                cat = "Faible (< 10)";
-            } else if (p.getQuantite() <= 50) {
-                cat = "Moyen (10-50)";
-            } else {
-                cat = "Élevé (> 50)";
-            }
-            categories.merge(cat, 1L, Long::sum);
-        }
-
-        return new PieChartData(
-                new ArrayList<>(categories.keySet()),
-                new ArrayList<>(categories.values())
-        );
+        return new DashboardDTO(quantiteTotale, valeurTotale, enRupture.size(), enRupture);
     }
 
     public long getTotalProduits() {
         return produitRepository.count();
+    }
+
+    private ProduitResponseDTO toDTO(Produit p) {
+        return new ProduitResponseDTO(
+                p.getId(), p.getNom(), p.getQuantite(), p.getPrixUnitaire(),
+                p.getDescription(), p.getDateCreation(), p.getDateMaj());
     }
 }

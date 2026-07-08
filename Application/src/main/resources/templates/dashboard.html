@@ -10,7 +10,7 @@
 <section layout:fragment="header">
     <h1>
         Dashboard
-        <small>Tableau de bord</small>
+        <small>Tableau de bord du stock</small>
     </h1>
     <ol class="breadcrumb">
         <li><a th:href="@{/dashboard}"><i class="fa fa-dashboard"></i> Home</a></li>
@@ -22,13 +22,49 @@
         <div class="col-lg-3 col-xs-6">
             <div class="small-box bg-aqua">
                 <div class="inner">
-                    <h3 th:text="${totalProduits}">0</h3>
-                    <p>Total Produits</p>
+                    <h3 th:text="${dashboard.quantiteTotale}">0</h3>
+                    <p>Quantité totale en stock</p>
                 </div>
                 <div class="icon">
                     <i class="ion ion-bag"></i>
                 </div>
-                <a th:href="@{/produits}" class="small-box-footer">More info <i class="fa fa-arrow-circle-right"></i></a>
+                <a th:href="@{/produits}" class="small-box-footer">Voir les produits <i class="fa fa-arrow-circle-right"></i></a>
+            </div>
+        </div>
+        <div class="col-lg-3 col-xs-6">
+            <div class="small-box bg-green">
+                <div class="inner">
+                    <h3 th:text="${#numbers.formatDecimal(dashboard.valeurTotaleStock, 1, 2)} + ' DH'">0</h3>
+                    <p>Valeur totale du stock</p>
+                </div>
+                <div class="icon">
+                    <i class="ion ion-cash"></i>
+                </div>
+                <a href="#" class="small-box-footer">&nbsp;</a>
+            </div>
+        </div>
+        <div class="col-lg-3 col-xs-6">
+            <div class="small-box bg-yellow">
+                <div class="inner">
+                    <h3 th:text="${totalProduits}">0</h3>
+                    <p>Total produits</p>
+                </div>
+                <div class="icon">
+                    <i class="ion ion-stats-bars"></i>
+                </div>
+                <a th:href="@{/produits}" class="small-box-footer">Plus d'infos <i class="fa fa-arrow-circle-right"></i></a>
+            </div>
+        </div>
+        <div class="col-lg-3 col-xs-6">
+            <div class="small-box bg-red">
+                <div class="inner">
+                    <h3 th:text="${dashboard.nombreProduitsEnRupture}">0</h3>
+                    <p>Produits en rupture</p>
+                </div>
+                <div class="icon">
+                    <i class="ion ion-alert-circled"></i>
+                </div>
+                <a href="#" class="small-box-footer">&nbsp;</a>
             </div>
         </div>
     </div>
@@ -37,20 +73,23 @@
         <div class="col-md-6">
             <div class="box box-primary">
                 <div class="box-header with-border">
-                    <h3 class="box-title">Répartition par prix</h3>
+                    <h3 class="box-title">Valeur du stock par produit</h3>
                 </div>
                 <div class="box-body">
-                    <canvas id="chartPrix" height="250"></canvas>
+                    <canvas id="chartValeur" height="250"></canvas>
                 </div>
             </div>
         </div>
         <div class="col-md-6">
-            <div class="box box-success">
+            <div class="box box-danger" th:if="${dashboard.nombreProduitsEnRupture > 0}">
                 <div class="box-header with-border">
-                    <h3 class="box-title">Répartition par stock</h3>
+                    <h3 class="box-title text-danger">Produits en rupture</h3>
                 </div>
                 <div class="box-body">
-                    <canvas id="chartStock" height="250"></canvas>
+                    <ul>
+                        <li th:each="p : ${dashboard.produitsEnRupture}"
+                            th:text="${p.nom} + ' — quantité restante : ' + ${p.quantite}"></li>
+                    </ul>
                 </div>
             </div>
         </div>
@@ -60,7 +99,7 @@
         <div class="col-xs-12">
             <div class="box box-info">
                 <div class="box-header with-border">
-                    <h3 class="box-title">Produits récents</h3>
+                    <h3 class="box-title">Produits</h3>
                     <div class="box-tools pull-right">
                         <a th:href="@{/produits}" class="btn btn-box-tool">
                             <i class="fa fa-list"></i> Voir tout
@@ -73,7 +112,7 @@
                             <tr>
                                 <th>ID</th>
                                 <th>Nom</th>
-                                <th>Prix</th>
+                                <th>Prix unitaire</th>
                                 <th>Quantité</th>
                             </tr>
                         </thead>
@@ -81,7 +120,7 @@
                             <tr th:each="produit : ${produits}">
                                 <td th:text="${produit.id}">1</td>
                                 <td th:text="${produit.nom}">Nom</td>
-                                <td th:text="${produit.prix}">0.00</td>
+                                <td th:text="${#numbers.formatDecimal(produit.prixUnitaire, 1, 2)} + ' DH'">0.00</td>
                                 <td th:text="${produit.quantite}">0</td>
                             </tr>
                         </tbody>
@@ -92,28 +131,24 @@
     </div>
 
     <script>
-        async function loadChart(id, url) {
-            const res = await fetch(url);
-            const data = await res.json();
-            new Chart(document.getElementById(id), {
-                type: 'pie',
-                data: {
-                    labels: data.labels,
-                    datasets: [{
-                        data: data.values,
-                        backgroundColor: ['#4361ee', '#f72585', '#4cc9f0', '#7209b7', '#e63946']
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: { position: 'bottom' }
-                    }
-                }
+        fetch('/api/produits')
+            .then(r => r.json())
+            .then(data => {
+                const labels = data.map(p => p.nom);
+                const valeurs = data.map(p => p.quantite * p.prixUnitaire);
+                new Chart(document.getElementById('chartValeur'), {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Valeur du stock (DH)',
+                            data: valeurs,
+                            backgroundColor: 'rgba(54, 162, 235, 0.6)'
+                        }]
+                    },
+                    options: { responsive: true }
+                });
             });
-        }
-        loadChart('chartPrix', '/dashboard/data/prix');
-        loadChart('chartStock', '/dashboard/data/stock');
     </script>
 </div>
 </body>

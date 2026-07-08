@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: module-produit
+  profiles:
+    active: dev-standalone   # à retirer/adapter quand le module Auth réel est intégré
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/gestion_usine_saas?useSSL=false&serverTimezone=UTC
+    username: root
+    password: 
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate     # le schema.sql commun fait foi, Hibernate ne doit PAS le modifier
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  thymeleaf:
+    cache: false
+
+server:
+  port: 8080

@@ -1,0 +1,44 @@
+@startuml
+title Ajout d'un produit — Module Stock
+
+actor "Utilisateur" as User
+participant "Vue\n(liste.html)" as UI
+participant "ProduitController" as Controller
+participant "ProduitService" as Service
+participant "UserContext" as Ctx
+participant "ProduitRepository" as Repo
+participant "HistoriqueService" as Hist
+database "Base de données\n(gestion_usine_saas)" as DB
+
+User -> UI : remplit le formulaire (nom, quantité, prix, description)
+UI -> Controller : POST /api/produits {nom, quantite, prixUnitaire, description}
+Controller -> Service : creer(userContext, dto)
+
+Service -> Ctx : isAdmin() / peutAjouterProduit()
+Ctx --> Service : true/false
+
+alt droit refusé
+    Service --> Controller : AccesRefuseException
+    Controller --> UI : 403 Forbidden
+    UI --> User : "Accès refusé"
+else droit accordé
+    Service -> Ctx : getUsineId()
+    Ctx --> Service : usineId
+
+    Service -> Repo : getReferenceById(usineId) [Usine]
+    Service -> Service : construit l'entité Produit
+
+    Service -> Repo : save(produit)
+    Repo -> DB : INSERT INTO produit (...)
+    DB --> Repo : id généré
+    Repo --> Service : Produit sauvegardé
+
+    Service -> Hist : log(usineId, userId, "Ajout du produit ...", "STOCK")
+    Hist -> DB : INSERT INTO historique (...)
+
+    Service --> Controller : ProduitResponseDTO
+    Controller --> UI : 201 Created + produit
+    UI --> User : produit ajouté, liste rafraîchie
+end
+
+@enduml

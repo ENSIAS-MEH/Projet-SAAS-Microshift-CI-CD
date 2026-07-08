@@ -2,7 +2,7 @@ services:
   app:
     build:
       context: ..
-      dockerfile: CI/Dockerfile
+      dockerfile: DockerFile
     image: ${DOCKER_IMAGE}:${DOCKER_TAG}
     container_name: usine-app
     ports:

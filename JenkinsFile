@@ -1,0 +1,16 @@
+pipeline {
+    agent any
+    environment {
+        DOCKER_IMAGE = 'dev-build'
+        PUBLISH_IMAGE = 'publish.build'
+        DOCKER_TAG = "${env.BUILD_NUMBER}" 
+        REGISTRY_ADDRESS = "localhost:5000"
+    }
+    stages {
+        stage('build') {
+            steps {
+                sh "docker compose -f CI/docker-compose.yml build"
+            }
+        }
+    }
+}

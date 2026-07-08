@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="layout">
+<head>
+    <title>Produits</title>
+</head>
+<body>
+<section layout:fragment="header">
+    <h1>
+        Produits
+        <small>Liste des produits</small>
+    </h1>
+    <ol class="breadcrumb">
+        <li><a th:href="@{/dashboard}"><i class="fa fa-dashboard"></i> Home</a></li>
+        <li class="active">Produits</li>
+    </ol>
+</section>
+<div layout:fragment="content">
+    <div class="box">
+        <div class="box-header">
+            <h3 class="box-title">Liste des produits</h3>
+            <div class="box-tools">
+                <a th:href="@{/produits/new}" class="btn btn-primary btn-sm">
+                    <i class="fa fa-plus"></i> Nouveau produit
+                </a>
+            </div>
+        </div>
+        <div class="box-body no-padding">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nom</th>
+                        <th>Description</th>
+                        <th>Prix</th>
+                        <th>Quantité</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="produit : ${produits}">
+                        <td th:text="${produit.id}">1</td>
+                        <td th:text="${produit.nom}">Nom</td>
+                        <td th:text="${produit.description}">Description</td>
+                        <td th:text="${produit.prix}">0.00</td>
+                        <td th:text="${produit.quantite}">0</td>
+                        <td>
+                            <a th:href="@{/produits/edit/{id}(id=${produit.id})}" class="btn btn-xs btn-info">
+                                <i class="fa fa-edit"></i> Edit
+                            </a>
+                            <a th:href="@{/produits/delete/{id}(id=${produit.id})}" class="btn btn-xs btn-danger"
+                               onclick="return confirm('Confirmer la suppression ?')">
+                                <i class="fa fa-trash"></i> Delete
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <p th:if="${#lists.isEmpty(produits)}" class="text-center text-muted" style="padding: 20px;">
+                Aucun produit trouvé.
+            </p>
+        </div>
+    </div>
+</div>
+</body>
+</html>

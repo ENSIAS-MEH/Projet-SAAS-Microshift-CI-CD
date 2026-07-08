@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="layout">
+<head>
+    <title>Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<section layout:fragment="header">
+    <h1>
+        Dashboard
+        <small>Tableau de bord</small>
+    </h1>
+    <ol class="breadcrumb">
+        <li><a th:href="@{/dashboard}"><i class="fa fa-dashboard"></i> Home</a></li>
+        <li class="active">Dashboard</li>
+    </ol>
+</section>
+<div layout:fragment="content">
+    <div class="row">
+        <div class="col-lg-3 col-xs-6">
+            <div class="small-box bg-aqua">
+                <div class="inner">
+                    <h3 th:text="${totalProduits}">0</h3>
+                    <p>Total Produits</p>
+                </div>
+                <div class="icon">
+                    <i class="ion ion-bag"></i>
+                </div>
+                <a th:href="@{/produits}" class="small-box-footer">More info <i class="fa fa-arrow-circle-right"></i></a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">Répartition par prix</h3>
+                </div>
+                <div class="box-body">
+                    <canvas id="chartPrix" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="box box-success">
+                <div class="box-header with-border">
+                    <h3 class="box-title">Répartition par stock</h3>
+                </div>
+                <div class="box-body">
+                    <canvas id="chartStock" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="box box-info">
+                <div class="box-header with-border">
+                    <h3 class="box-title">Produits récents</h3>
+                    <div class="box-tools pull-right">
+                        <a th:href="@{/produits}" class="btn btn-box-tool">
+                            <i class="fa fa-list"></i> Voir tout
+                        </a>
+                    </div>
+                </div>
+                <div class="box-body">
+                    <table class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nom</th>
+                                <th>Prix</th>
+                                <th>Quantité</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="produit : ${produits}">
+                                <td th:text="${produit.id}">1</td>
+                                <td th:text="${produit.nom}">Nom</td>
+                                <td th:text="${produit.prix}">0.00</td>
+                                <td th:text="${produit.quantite}">0</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function loadChart(id, url) {
+            const res = await fetch(url);
+            const data = await res.json();
+            new Chart(document.getElementById(id), {
+                type: 'pie',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        data: data.values,
+                        backgroundColor: ['#4361ee', '#f72585', '#4cc9f0', '#7209b7', '#e63946']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+        }
+        loadChart('chartPrix', '/dashboard/data/prix');
+        loadChart('chartStock', '/dashboard/data/stock');
+    </script>
+</div>
+</body>
+</html>

@@ -3,6 +3,7 @@ package com.jeemobile.application.entity;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import jakarta.persistence.*;
 
 
@@ -40,8 +41,8 @@ public class Commande implements Serializable {
   
     @PrePersist
     protected void onCreate() {
-        this.dateCreation = LocalDateTime.now();
-        this.dateMaj = LocalDateTime.now();
+        this.dateCreation = LocalDateTime.now(ZoneId.systemDefault());
+        this.dateMaj = LocalDateTime.now(ZoneId.systemDefault());
         if (this.etat == null) {
             this.etat = EtatCommande.EN_ATTENTE; // Default state when created [cite: 51, 61]
         }
@@ -49,12 +50,14 @@ public class Commande implements Serializable {
 
     @PreUpdate
     protected void onUpdate() {
-        this.dateMaj = LocalDateTime.now();
+        this.dateMaj = LocalDateTime.now(ZoneId.systemDefault());
     }
 
     // --- Constructors ---
     public Commande() {
     }
+
+
 
 
   

@@ -18,6 +18,8 @@ import java.util.*;
 @RequestMapping("/commandes")
 public class CommandeController {
 
+    private static final String REDIRECT_COMMANDES = "redirect:/commandes";
+
     private final CommandeService commandeService;
     private final ProduitService produitService;
 
@@ -84,18 +86,18 @@ public class CommandeController {
     @PostMapping
     public String save(@Valid @ModelAttribute("commande") CommandeRequestDTO dto) {
         commandeService.creer(dto);
-        return "redirect:/commandes";
+        return REDIRECT_COMMANDES;
     }
 
     @PostMapping("/{id}/etat")
     public String changerEtat(@PathVariable Integer id, @RequestParam EtatCommande etat) {
         commandeService.modifierEtat(id, etat);
-        return "redirect:/commandes";
+        return REDIRECT_COMMANDES;
     }
 
     @GetMapping("/delete/{id}")
     public String delete(@PathVariable Integer id) {
         commandeService.supprimer(id);
-        return "redirect:/commandes";
+        return REDIRECT_COMMANDES;
     }
 }

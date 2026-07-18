@@ -4,7 +4,6 @@
       layout:decorate="layout">
 <head>
     <title>Commandes</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 <body>
 <section layout:fragment="header">
@@ -26,17 +25,61 @@
                     <h3 class="box-title">Commandes par état</h3>
                 </div>
                 <div class="box-body">
-                    <canvas id="chartBar" height="200"></canvas>
+                    <th:block th:each="entry : ${etatCounts}">
+                        <th:block th:with="pct=${maxEtatCount > 0} ? T(java.lang.Math).floor(entry.value * 100.0 / maxEtatCount) : 0">
+                            <div class="row" style="margin-bottom: 8px;">
+                                <div class="col-xs-3 text-right" style="padding-right: 5px;">
+                                    <span class="label"
+                                          th:classappend="${entry.key == 'EN_ATTENTE'} ? 'label-warning' : ${entry.key == 'VALIDEE'} ? 'label-primary' : ${entry.key == 'EXPEDIEE'} ? 'label-success' : 'label-danger'"
+                                          th:text="${entry.key}">EN_ATTENTE</span>
+                                </div>
+                                <div class="col-xs-7" style="padding-left: 5px; padding-right: 5px;">
+                                    <div class="progress" style="margin: 0; height: 22px;">
+                                        <div class="progress-bar"
+                                             th:classappend="${entry.key == 'EN_ATTENTE'} ? 'progress-bar-warning' : ${entry.key == 'VALIDEE'} ? 'progress-bar-primary' : ${entry.key == 'EXPEDIEE'} ? 'progress-bar-success' : 'progress-bar-danger'"
+                                             th:style="'width: ' + ${pct} + '%'"
+                                             th:attr="aria-valuenow=${entry.value}, aria-valuemin=0, aria-valuemax=${maxEtatCount}"
+                                             th:text="${entry.value}">0</div>
+                                    </div>
+                                </div>
+                                <div class="col-xs-2 text-left" style="padding-left: 0;">
+                                    <span class="badge" th:text="${entry.value}">0</span>
+                                </div>
+                            </div>
+                        </th:block>
+                    </th:block>
+                    <p th:if="${maxEtatCount == 0}" class="text-center text-muted" style="margin: 10px 0;">
+                        Aucune commande pour le moment.
+                    </p>
                 </div>
             </div>
         </div>
         <div class="col-md-6">
             <div class="box box-success">
                 <div class="box-header with-border">
-                    <h3 class="box-title">Répartition par produit</h3>
+                    <h3 class="box-title">Répartition par produit (DH)</h3>
                 </div>
                 <div class="box-body">
-                    <canvas id="chartPie" height="200"></canvas>
+                    <th:block th:each="entry : ${produitTotals}">
+                        <th:block th:with="entryValue=${entry.value.doubleValue()}, maxValue=${maxProduitTotal.doubleValue()}, pct=${maxValue > 0} ? T(java.lang.Math).floor(entryValue * 100.0 / maxValue) : 0">
+                            <div class="row" style="margin-bottom: 6px;">
+                                <div class="col-xs-5 text-right" style="padding-right: 5px; line-height: 22px;" th:text="${entry.key}">Produit</div>
+                                <div class="col-xs-5" style="padding-left: 5px; padding-right: 5px;">
+                                    <div class="progress" style="margin: 0; height: 20px; background: #eaeaea;">
+                                        <div class="progress-bar progress-bar-success"
+                                             th:style="'width: ' + ${pct} + '%'"
+                                             th:attr="aria-valuenow=${entry.value}, aria-valuemin=0, aria-valuemax=${maxProduitTotal}"></div>
+                                    </div>
+                                </div>
+                                <div class="col-xs-2 text-left" style="padding-left: 0; line-height: 22px;">
+                                    <strong th:text="${#numbers.formatDecimal(entry.value, 1, 2)}">0.00</strong>
+                                </div>
+                            </div>
+                        </th:block>
+                    </th:block>
+                    <p th:if="${produitTotals.isEmpty()}" class="text-center text-muted" style="margin: 10px 0;">
+                        Aucune commande pour le moment.
+                    </p>
                 </div>
             </div>
         </div>
@@ -190,76 +233,7 @@
     </div>
 </div>
 
-<div id="chartData" style="display:none;"
-     th:data-etat-labels="${etatChartLabels}"
-     th:data-etat-data="${etatChartData}"
-     th:data-produit-labels="${produitChartLabels}"
-     th:data-produit-data="${produitChartData}"></div>
-
 <script>
-try {
-    console.log('Chart script starting');
-    console.log('Chart.js available:', typeof Chart !== 'undefined');
-
-    var d = document.getElementById('chartData');
-    console.log('chartData element:', d);
-    if (d) {
-        console.log('etat-labels:', d.getAttribute('data-etat-labels'));
-        console.log('etat-data:', d.getAttribute('data-etat-data'));
-        console.log('produit-labels:', d.getAttribute('data-produit-labels'));
-        console.log('produit-data:', d.getAttribute('data-produit-data'));
-    }
-
-    var couleurs = { EN_ATTENTE: '#f39c12', VALIDEE: '#3c8dbc', EXPEDIEE: '#00a65a', ANNULEE: '#dd4b39' };
-
-    var etatLabels = d.getAttribute('data-etat-labels').split(',').filter(Boolean);
-    var etatData = d.getAttribute('data-etat-data').split(',').filter(Boolean).map(Number);
-    var produitLabels = d.getAttribute('data-produit-labels').split(',').filter(Boolean);
-    var produitData = d.getAttribute('data-produit-data').split(',').filter(Boolean).map(Number);
-
-    console.log('Parsed etatLabels:', etatLabels);
-    console.log('Parsed etatData:', etatData);
-    console.log('Parsed produitLabels:', produitLabels);
-    console.log('Parsed produitData:', produitData);
-
-    if (etatLabels.length > 0 && etatData.length > 0) {
-        new Chart(document.getElementById('chartBar'), {
-            type: 'bar',
-            data: {
-                labels: etatLabels,
-                datasets: [{
-                    label: 'Nombre de commandes',
-                    data: etatData,
-                    backgroundColor: etatLabels.map(function(e) { return couleurs[e] || '#aaa'; })
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: { legend: { display: false } },
-                scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
-            }
-        });
-        console.log('Bar chart created');
-    }
-
-    if (produitLabels.length > 0 && produitData.length > 0) {
-        new Chart(document.getElementById('chartPie'), {
-            type: 'pie',
-            data: {
-                labels: produitLabels,
-                datasets: [{
-                    data: produitData,
-                    backgroundColor: ['#3c8dbc','#00a65a','#f39c12','#dd4b39','#605ca8','#00c0ef','#d2d6de','#001f3f','#39cccc','#ff851b']
-                }]
-            },
-            options: { responsive: true, plugins: { legend: { position: 'right' } } }
-        });
-        console.log('Pie chart created');
-    }
-} catch (e) {
-    console.error('CHART ERROR:', e.message, e.stack);
-}
-
 var sortCol = null;
 var sortAsc = true;
 
@@ -269,7 +243,8 @@ document.getElementById('commandesTable').querySelectorAll('.sortable').forEach(
         if (sortCol === col) sortAsc = !sortAsc;
         else { sortCol = col; sortAsc = true; }
         sortTable(col, sortAsc);
-        th.querySelector('i').className = sortAsc ? 'fa fa-sort-asc' : 'fa fa-sort-desc';
+        var icon = th.querySelector('i');
+        icon.className = sortAsc ? 'fa fa-sort-asc' : 'fa fa-sort-desc';
     });
 });
 
@@ -313,10 +288,10 @@ document.querySelectorAll('.clickable-row').forEach(function(row) {
         document.getElementById('detailDateMaj').textContent = row.getAttribute('data-date-maj');
 
         var etat = row.getAttribute('data-etat');
-        var etatLabels = { EN_ATTENTE: 'En attente', VALIDEE: 'Validée', EXPEDIEE: 'Expédiée', ANNULEE: 'Annulée' };
-        var etatColors = { EN_ATTENTE: 'label-warning', VALIDEE: 'label-primary', EXPEDIEE: 'label-success', ANNULEE: 'label-danger' };
+        var etatLbl = { EN_ATTENTE: 'En attente', VALIDEE: 'Validée', EXPEDIEE: 'Expédiée', ANNULEE: 'Annulée' };
+        var etatCls = { EN_ATTENTE: 'label-warning', VALIDEE: 'label-primary', EXPEDIEE: 'label-success', ANNULEE: 'label-danger' };
         document.getElementById('detailEtatTitle').textContent = 'État actuel';
-        document.getElementById('detailEtatBadge').innerHTML = '<span class="label ' + (etatColors[etat] || 'label-default') + '" style="font-size:24px;padding:12px 24px;">' + (etatLabels[etat] || etat) + '</span>';
+        document.getElementById('detailEtatBadge').innerHTML = '<span class="label ' + (etatCls[etat] || 'label-default') + '" style="font-size:24px;padding:12px 24px;">' + (etatLbl[etat] || etat) + '</span>';
 
         var tbody = document.getElementById('historiqueBody');
         tbody.innerHTML = '<tr><td colspan="5" class="text-center">Chargement...</td></tr>';
@@ -332,11 +307,11 @@ document.querySelectorAll('.clickable-row').forEach(function(row) {
                 data.forEach(function(h) {
                     var tr = document.createElement('tr');
                     if (h.id === parseInt(id)) tr.style.fontWeight = 'bold';
-                    var etatClass = { EN_ATTENTE: 'label-warning', VALIDEE: 'label-primary', EXPEDIEE: 'label-success', ANNULEE: 'label-danger' };
+                    var cls = { EN_ATTENTE: 'label-warning', VALIDEE: 'label-primary', EXPEDIEE: 'label-success', ANNULEE: 'label-danger' };
                     tr.innerHTML = '<td>' + h.id + '</td>' +
                         '<td>' + h.quantite + '</td>' +
                         '<td>' + h.prixTotal.toFixed(2) + ' DH</td>' +
-                        '<td><span class="label ' + (etatClass[h.etat] || 'label-default') + '">' + h.etat + '</span></td>' +
+                        '<td><span class="label ' + (cls[h.etat] || 'label-default') + '">' + h.etat + '</span></td>' +
                         '<td>' + new Date(h.dateCreation).toLocaleString('fr-FR') + '</td>';
                     tbody.appendChild(tr);
                 });

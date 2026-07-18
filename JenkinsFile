@@ -24,7 +24,7 @@ pipeline {
             steps {
                 dir('Application') {
                     sh """
-                        mvn sonar:sonar \
+                        mvn compile sonar:sonar \
                         -Dsonar.projectKey=factorysaas \
                         -Dsonar.host.url=http://localhost:9000 \
                         -Dsonar.login=${SONAR_TOKEN}

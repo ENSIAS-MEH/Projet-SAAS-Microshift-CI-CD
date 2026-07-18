@@ -8,6 +8,31 @@ pipeline {
         SONAR_TOKEN = credentials('sonar-token-id')
     }
     stages {
+        stage('unit tests') {
+            steps {
+                dir('Application') {
+                    sh "mvn test"
+                }
+            }
+            post {
+                always {
+                    junit '**/target/surefire-reports/*.xml'
+                }
+            }
+        }
+
+        stage('dependency scan') {
+            steps {
+                dir('Application') {
+                    sh "mvn org.owasp:dependency-check-maven:check"
+                }
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'Application/target/dependency-check-report.html', allowEmptyArchive: true
+                }
+            }
+        }
         stage('build') {
             steps {
                 sh "docker compose -f Application/src/CI/docker-compose.yml build"            }

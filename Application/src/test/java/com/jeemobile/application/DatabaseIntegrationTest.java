@@ -11,16 +11,21 @@ import com.jeemobile.application.service.ProduitService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
-@Transactional
 class DatabaseIntegrationTest {
 
     @Autowired
@@ -29,7 +34,11 @@ class DatabaseIntegrationTest {
     @Autowired
     private CommandeService commandeService;
 
+    @Autowired
+    private TestRestTemplate rest;
+
     @Test
+    @Transactional
     void addAndDeleteProduct() {
         ProduitRequestDTO dto = new ProduitRequestDTO();
         dto.setNom("Produit Test");
@@ -48,6 +57,7 @@ class DatabaseIntegrationTest {
     }
 
     @Test
+    @Transactional
     void addOrderChangeStateAndDelete() {
         ProduitRequestDTO productDto = new ProduitRequestDTO();
         productDto.setNom("Produit pour commande");
@@ -69,5 +79,62 @@ class DatabaseIntegrationTest {
 
         commandeService.supprimer(order.getId());
         produitService.supprimer(product.getId());
+    }
+
+    @Test
+    void addAndDeleteProductViaHttp() {
+        ProduitRequestDTO dto = new ProduitRequestDTO();
+        dto.setNom("Produit HTTP");
+        dto.setQuantite(10);
+        dto.setPrixUnitaire(new BigDecimal("99.99"));
+        dto.setDescription("Description HTTP");
+
+        ResponseEntity<ProduitResponseDTO> createResponse =
+                rest.postForEntity("/api/produits", dto, ProduitResponseDTO.class);
+        assertEquals(HttpStatus.CREATED, createResponse.getStatusCode());
+        ProduitResponseDTO created = createResponse.getBody();
+        assertNotNull(created.getId());
+
+        ResponseEntity<ProduitResponseDTO> getResponse =
+                rest.getForEntity("/api/produits/{id}", ProduitResponseDTO.class, created.getId());
+        assertEquals(HttpStatus.OK, getResponse.getStatusCode());
+        assertEquals("Produit HTTP", getResponse.getBody().getNom());
+
+        rest.delete("/api/produits/{id}", created.getId());
+
+        ResponseEntity<Map> deletedResponse =
+                rest.getForEntity("/api/produits/{id}", Map.class, created.getId());
+        assertEquals(HttpStatus.NOT_FOUND, deletedResponse.getStatusCode());
+    }
+
+    @Test
+    void addOrderChangeStateAndDeleteViaHttp() {
+        ProduitRequestDTO productDto = new ProduitRequestDTO();
+        productDto.setNom("Produit commande");
+        productDto.setQuantite(50);
+        productDto.setPrixUnitaire(new BigDecimal("25.00"));
+        ResponseEntity<ProduitResponseDTO> productResponse =
+                rest.postForEntity("/api/produits", productDto, ProduitResponseDTO.class);
+        Integer productId = productResponse.getBody().getId();
+
+        CommandeRequestDTO orderDto = new CommandeRequestDTO();
+        orderDto.setProduitId(productId);
+        orderDto.setQuantite(5);
+        ResponseEntity<CommandeResponseDTO> orderResponse =
+                rest.postForEntity("/api/commandes", orderDto, CommandeResponseDTO.class);
+        assertEquals(HttpStatus.CREATED, orderResponse.getStatusCode());
+        CommandeResponseDTO order = orderResponse.getBody();
+        assertNotNull(order.getId());
+        assertEquals(EtatCommande.EN_ATTENTE, order.getEtat());
+
+        ResponseEntity<CommandeResponseDTO> updatedResponse =
+                rest.exchange("/api/commandes/{id}/etat", HttpMethod.PUT,
+                        new HttpEntity<>(EtatCommande.VALIDEE),
+                        CommandeResponseDTO.class, order.getId());
+        assertEquals(HttpStatus.OK, updatedResponse.getStatusCode());
+        assertEquals(EtatCommande.VALIDEE, updatedResponse.getBody().getEtat());
+
+        rest.delete("/api/commandes/{id}", order.getId());
+        rest.delete("/api/produits/{id}", productId);
     }
 }

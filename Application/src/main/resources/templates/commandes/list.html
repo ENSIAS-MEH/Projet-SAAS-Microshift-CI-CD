@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="layout">
+<head>
+    <title>Commandes</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<section layout:fragment="header">
+    <h1>
+        Commandes
+        <small>Gestion des commandes</small>
+    </h1>
+    <ol class="breadcrumb">
+        <li><a th:href="@{/dashboard}"><i class="fa fa-dashboard"></i> Home</a></li>
+        <li class="active">Commandes</li>
+    </ol>
+</section>
+<div layout:fragment="content">
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="box box-primary">
+                <div class="box-header with-border">
+                    <h3 class="box-title">Commandes par état</h3>
+                </div>
+                <div class="box-body">
+                    <canvas id="chartBar" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="box box-success">
+                <div class="box-header with-border">
+                    <h3 class="box-title">Répartition par produit</h3>
+                </div>
+                <div class="box-body">
+                    <canvas id="chartPie" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="box">
+        <div class="box-header">
+            <h3 class="box-title">Liste des commandes</h3>
+            <div class="box-tools">
+                <a th:href="@{/commandes/new}" class="btn btn-primary btn-sm">
+                    <i class="fa fa-plus"></i> Nouvelle commande
+                </a>
+            </div>
+        </div>
+        <div class="box-body no-padding">
+            <table class="table table-striped" id="commandesTable">
+                <thead>
+                    <tr>
+                        <th class="sortable" data-sort="id">ID <i class="fa fa-sort"></i></th>
+                        <th class="sortable" data-sort="produit">Produit <i class="fa fa-sort"></i></th>
+                        <th class="sortable" data-sort="quantite">Quantité <i class="fa fa-sort"></i></th>
+                        <th class="sortable" data-sort="prix">Prix total <i class="fa fa-sort"></i></th>
+                        <th class="sortable" data-sort="etat">État <i class="fa fa-sort"></i></th>
+                        <th class="sortable" data-sort="date">Date <i class="fa fa-sort"></i></th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="c : ${commandes}" class="clickable-row"
+                        th:data-id="${c.id}"
+                        th:data-produit-id="${c.produitId}"
+                        th:data-produit-nom="${c.produitNom}"
+                        th:data-quantite="${c.quantite}"
+                        th:data-prix-total="${c.prixTotal}"
+                        th:data-prix-unitaire="${c.prixUnitaire}"
+                        th:data-etat="${c.etat.name()}"
+                        th:data-date="${#temporals.format(c.dateCreation, 'dd/MM/yyyy HH:mm')}"
+                        th:data-date-maj="${c.dateMaj != null ? #temporals.format(c.dateMaj, 'dd/MM/yyyy HH:mm') : '-'}"
+                        style="cursor: pointer;">
+                        <td th:text="${c.id}">1</td>
+                        <td th:text="${c.produitNom}">Produit</td>
+                        <td th:text="${c.quantite}">0</td>
+                        <td th:text="${#numbers.formatDecimal(c.prixTotal, 1, 2)} + ' DH'">0.00</td>
+                        <td>
+                            <th:block th:switch="${c.etat.name()}">
+                                <span class="label label-warning" th:case="'EN_ATTENTE'" th:text="${c.etat.name()}">EN_ATTENTE</span>
+                                <span class="label label-primary" th:case="'VALIDEE'" th:text="${c.etat.name()}">VALIDEE</span>
+                                <span class="label label-success" th:case="'EXPEDIEE'" th:text="${c.etat.name()}">EXPEDIEE</span>
+                                <span class="label label-danger" th:case="'ANNULEE'" th:text="${c.etat.name()}">ANNULEE</span>
+                            </th:block>
+                        </td>
+                        <td th:text="${#temporals.format(c.dateCreation, 'dd/MM/yyyy HH:mm')}">01/01/2026</td>
+                        <td>
+                            <div class="btn-group btn-group-xs">
+                                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                                    État <span class="caret"></span>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li th:each="etat : ${etats}">
+                                        <form th:action="@{/commandes/{id}/etat(id=${c.id})}" method="post">
+                                            <input type="hidden" name="etat" th:value="${etat.name()}"/>
+                                            <button type="submit" class="btn btn-link btn-block text-left"
+                                                    style="padding: 3px 20px; border: none; border-radius: 0;"
+                                                    th:text="${etat.name()}">EN_ATTENTE</button>
+                                        </form>
+                                    </li>
+                                </ul>
+                                <button class="btn btn-xs btn-danger btn-delete"
+                                        th:data-delete-url="@{/commandes/delete/{id}(id=${c.id})}"
+                                        data-toggle="modal" data-target="#modalSupprimer">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <p th:if="${#lists.isEmpty(commandes)}" class="text-center text-muted" style="padding: 20px;">
+                Aucune commande trouvée.
+            </p>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalSupprimer" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Confirmer la suppression</h4>
+            </div>
+            <div class="modal-body">
+                <p>Êtes-vous sûr de vouloir supprimer cette commande ?</p>
+            </div>
+            <div class="modal-footer">
+                <form id="formSupprimer" method="get">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-danger"><i class="fa fa-trash"></i> Supprimer</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalDetail" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Détail de la commande</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-bordered">
+                            <tr><th>ID</th><td id="detailId"></td></tr>
+                            <tr><th>Produit</th><td id="detailProduit"></td></tr>
+                            <tr><th>Quantité</th><td id="detailQuantite"></td></tr>
+                            <tr><th>Prix unitaire</th><td id="detailPrixUnitaire"></td></tr>
+                            <tr><th>Prix total</th><td id="detailPrixTotal"></td></tr>
+                            <tr><th>Date création</th><td id="detailDate"></td></tr>
+                            <tr><th>Dernière modif.</th><td id="detailDateMaj"></td></tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h4 id="detailEtatTitle" class="text-center"></h4>
+                        <div id="detailEtatBadge" class="text-center" style="font-size: 24px; padding: 20px;"></div>
+                    </div>
+                </div>
+                <hr/>
+                <h4>Historique des commandes de ce produit</h4>
+                <table class="table table-striped table-bordered" id="tableHistorique">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Quantité</th>
+                            <th>Prix total</th>
+                            <th>État</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historiqueBody">
+                        <tr><td colspan="5" class="text-center">Chargement...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Fermer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="chartData" style="display:none;"
+     th:data-etat-labels="${etatChartLabels}"
+     th:data-etat-data="${etatChartData}"
+     th:data-produit-labels="${produitChartLabels}"
+     th:data-produit-data="${produitChartData}"></div>
+
+<script>
+try {
+    console.log('Chart script starting');
+    console.log('Chart.js available:', typeof Chart !== 'undefined');
+
+    var d = document.getElementById('chartData');
+    console.log('chartData element:', d);
+    if (d) {
+        console.log('etat-labels:', d.getAttribute('data-etat-labels'));
+        console.log('etat-data:', d.getAttribute('data-etat-data'));
+        console.log('produit-labels:', d.getAttribute('data-produit-labels'));
+        console.log('produit-data:', d.getAttribute('data-produit-data'));
+    }
+
+    var couleurs = { EN_ATTENTE: '#f39c12', VALIDEE: '#3c8dbc', EXPEDIEE: '#00a65a', ANNULEE: '#dd4b39' };
+
+    var etatLabels = d.getAttribute('data-etat-labels').split(',').filter(Boolean);
+    var etatData = d.getAttribute('data-etat-data').split(',').filter(Boolean).map(Number);
+    var produitLabels = d.getAttribute('data-produit-labels').split(',').filter(Boolean);
+    var produitData = d.getAttribute('data-produit-data').split(',').filter(Boolean).map(Number);
+
+    console.log('Parsed etatLabels:', etatLabels);
+    console.log('Parsed etatData:', etatData);
+    console.log('Parsed produitLabels:', produitLabels);
+    console.log('Parsed produitData:', produitData);
+
+    if (etatLabels.length > 0 && etatData.length > 0) {
+        new Chart(document.getElementById('chartBar'), {
+            type: 'bar',
+            data: {
+                labels: etatLabels,
+                datasets: [{
+                    label: 'Nombre de commandes',
+                    data: etatData,
+                    backgroundColor: etatLabels.map(function(e) { return couleurs[e] || '#aaa'; })
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+            }
+        });
+        console.log('Bar chart created');
+    }
+
+    if (produitLabels.length > 0 && produitData.length > 0) {
+        new Chart(document.getElementById('chartPie'), {
+            type: 'pie',
+            data: {
+                labels: produitLabels,
+                datasets: [{
+                    data: produitData,
+                    backgroundColor: ['#3c8dbc','#00a65a','#f39c12','#dd4b39','#605ca8','#00c0ef','#d2d6de','#001f3f','#39cccc','#ff851b']
+                }]
+            },
+            options: { responsive: true, plugins: { legend: { position: 'right' } } }
+        });
+        console.log('Pie chart created');
+    }
+} catch (e) {
+    console.error('CHART ERROR:', e.message, e.stack);
+}
+
+var sortCol = null;
+var sortAsc = true;
+
+document.getElementById('commandesTable').querySelectorAll('.sortable').forEach(function(th) {
+    th.addEventListener('click', function() {
+        var col = th.getAttribute('data-sort');
+        if (sortCol === col) sortAsc = !sortAsc;
+        else { sortCol = col; sortAsc = true; }
+        sortTable(col, sortAsc);
+        th.querySelector('i').className = sortAsc ? 'fa fa-sort-asc' : 'fa fa-sort-desc';
+    });
+});
+
+function sortTable(col, asc) {
+    var tbody = document.querySelector('#commandesTable tbody');
+    var rows = Array.from(tbody.querySelectorAll('tr'));
+    rows.sort(function(a, b) {
+        var va, vb;
+        switch (col) {
+            case 'id': va = parseInt(a.cells[0].textContent); vb = parseInt(b.cells[0].textContent); break;
+            case 'produit': va = a.cells[1].textContent.toLowerCase(); vb = b.cells[1].textContent.toLowerCase(); break;
+            case 'quantite': va = parseInt(a.cells[2].textContent); vb = parseInt(b.cells[2].textContent); break;
+            case 'prix': va = parseFloat(a.cells[3].textContent); vb = parseFloat(b.cells[3].textContent); break;
+            case 'etat': va = a.cells[4].textContent.trim().toLowerCase(); vb = b.cells[4].textContent.trim().toLowerCase(); break;
+            case 'date': va = a.cells[5].textContent; vb = b.cells[5].textContent; break;
+        }
+        if (va < vb) return asc ? -1 : 1;
+        if (va > vb) return asc ? 1 : -1;
+        return 0;
+    });
+    rows.forEach(function(r) { tbody.appendChild(r); });
+}
+
+document.querySelectorAll('.btn-delete').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        document.getElementById('formSupprimer').action = btn.getAttribute('data-delete-url');
+    });
+});
+
+document.querySelectorAll('.clickable-row').forEach(function(row) {
+    row.addEventListener('click', function(e) {
+        if (e.target.closest('.btn-group')) return;
+        var id = row.getAttribute('data-id');
+        var produitId = row.getAttribute('data-produit-id');
+        document.getElementById('detailId').textContent = id;
+        document.getElementById('detailProduit').textContent = row.getAttribute('data-produit-nom');
+        document.getElementById('detailQuantite').textContent = row.getAttribute('data-quantite');
+        document.getElementById('detailPrixUnitaire').textContent = parseFloat(row.getAttribute('data-prix-unitaire')).toFixed(2) + ' DH';
+        document.getElementById('detailPrixTotal').textContent = parseFloat(row.getAttribute('data-prix-total')).toFixed(2) + ' DH';
+        document.getElementById('detailDate').textContent = row.getAttribute('data-date');
+        document.getElementById('detailDateMaj').textContent = row.getAttribute('data-date-maj');
+
+        var etat = row.getAttribute('data-etat');
+        var etatLabels = { EN_ATTENTE: 'En attente', VALIDEE: 'Validée', EXPEDIEE: 'Expédiée', ANNULEE: 'Annulée' };
+        var etatColors = { EN_ATTENTE: 'label-warning', VALIDEE: 'label-primary', EXPEDIEE: 'label-success', ANNULEE: 'label-danger' };
+        document.getElementById('detailEtatTitle').textContent = 'État actuel';
+        document.getElementById('detailEtatBadge').innerHTML = '<span class="label ' + (etatColors[etat] || 'label-default') + '" style="font-size:24px;padding:12px 24px;">' + (etatLabels[etat] || etat) + '</span>';
+
+        var tbody = document.getElementById('historiqueBody');
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center">Chargement...</td></tr>';
+
+        fetch('/api/commandes/produit/' + produitId)
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Aucun historique</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = '';
+                data.forEach(function(h) {
+                    var tr = document.createElement('tr');
+                    if (h.id === parseInt(id)) tr.style.fontWeight = 'bold';
+                    var etatClass = { EN_ATTENTE: 'label-warning', VALIDEE: 'label-primary', EXPEDIEE: 'label-success', ANNULEE: 'label-danger' };
+                    tr.innerHTML = '<td>' + h.id + '</td>' +
+                        '<td>' + h.quantite + '</td>' +
+                        '<td>' + h.prixTotal.toFixed(2) + ' DH</td>' +
+                        '<td><span class="label ' + (etatClass[h.etat] || 'label-default') + '">' + h.etat + '</span></td>' +
+                        '<td>' + new Date(h.dateCreation).toLocaleString('fr-FR') + '</td>';
+                    tbody.appendChild(tr);
+                });
+            })
+            .catch(function() {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Erreur de chargement</td></tr>';
+            });
+
+        $('#modalDetail').modal('show');
+    });
+});
+</script>
+</body>
+</html>

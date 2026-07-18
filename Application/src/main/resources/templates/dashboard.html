@@ -70,6 +70,57 @@
     </div>
 
     <div class="row">
+        <div class="col-lg-3 col-xs-6">
+            <div class="small-box bg-aqua">
+                <div class="inner">
+                    <h3 th:text="${totalCommandes}">0</h3>
+                    <p>Total commandes</p>
+                </div>
+                <div class="icon">
+                    <i class="ion ion-ios-cart"></i>
+                </div>
+                <a th:href="@{/commandes}" class="small-box-footer">Voir les commandes <i class="fa fa-arrow-circle-right"></i></a>
+            </div>
+        </div>
+        <div class="col-lg-3 col-xs-6">
+            <div class="small-box bg-yellow">
+                <div class="inner">
+                    <h3 th:text="${commandesEnAttente}">0</h3>
+                    <p>Commandes en attente</p>
+                </div>
+                <div class="icon">
+                    <i class="ion ion-clock"></i>
+                </div>
+                <a th:href="@{/commandes}" class="small-box-footer">Voir <i class="fa fa-arrow-circle-right"></i></a>
+            </div>
+        </div>
+        <div class="col-lg-3 col-xs-6">
+            <div class="small-box bg-green">
+                <div class="inner">
+                    <h3 th:text="${commandesValidees}">0</h3>
+                    <p>Commandes validées</p>
+                </div>
+                <div class="icon">
+                    <i class="ion ion-checkmark-circled"></i>
+                </div>
+                <a th:href="@{/commandes}" class="small-box-footer">Voir <i class="fa fa-arrow-circle-right"></i></a>
+            </div>
+        </div>
+        <div class="col-lg-3 col-xs-6">
+            <div class="small-box bg-red">
+                <div class="inner">
+                    <h3 th:text="${totalCommandes - commandesValidees - commandesEnAttente}">0</h3>
+                    <p>Expédiées / Annulées</p>
+                </div>
+                <div class="icon">
+                    <i class="ion ion-android-done-all"></i>
+                </div>
+                <a th:href="@{/commandes}" class="small-box-footer">Voir <i class="fa fa-arrow-circle-right"></i></a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
         <div class="col-md-6">
             <div class="box box-primary">
                 <div class="box-header with-border">
@@ -96,7 +147,7 @@
     </div>
 
     <div class="row">
-        <div class="col-xs-12">
+        <div class="col-md-6">
             <div class="box box-info">
                 <div class="box-header with-border">
                     <h3 class="box-title">Produits</h3>
@@ -122,6 +173,47 @@
                                 <td th:text="${produit.nom}">Nom</td>
                                 <td th:text="${#numbers.formatDecimal(produit.prixUnitaire, 1, 2)} + ' DH'">0.00</td>
                                 <td th:text="${produit.quantite}">0</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="box box-success">
+                <div class="box-header with-border">
+                    <h3 class="box-title">Dernières commandes</h3>
+                    <div class="box-tools pull-right">
+                        <a th:href="@{/commandes}" class="btn btn-box-tool">
+                            <i class="fa fa-list"></i> Voir tout
+                        </a>
+                    </div>
+                </div>
+                <div class="box-body">
+                    <table class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Produit</th>
+                                <th>Qté</th>
+                                <th>Total</th>
+                                <th>État</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="c : ${commandes}">
+                                <td th:text="${c.id}">1</td>
+                                <td th:text="${c.produitNom}">Nom</td>
+                                <td th:text="${c.quantite}">0</td>
+                                <td th:text="${#numbers.formatDecimal(c.prixTotal, 1, 2)} + ' DH'">0.00</td>
+                                <td>
+                                    <th:block th:switch="${c.etat.name()}">
+                                        <span class="label label-warning" th:case="'EN_ATTENTE'" th:text="${c.etat.name()}">EN_ATTENTE</span>
+                                        <span class="label label-primary" th:case="'VALIDEE'" th:text="${c.etat.name()}">VALIDEE</span>
+                                        <span class="label label-success" th:case="'EXPEDIEE'" th:text="${c.etat.name()}">EXPEDIEE</span>
+                                        <span class="label label-danger" th:case="'ANNULEE'" th:text="${c.etat.name()}">ANNULEE</span>
+                                    </th:block>
+                                </td>
                             </tr>
                         </tbody>
                     </table>

@@ -7,6 +7,7 @@ pipeline {
         REGISTRY_ADDRESS = "localhost:5000"
         SONAR_TOKEN = credentials('sonar-token-id')
         NVD_API_KEY = credentials('nvd-api-key')
+        DOCKER_SCOUT_TOKEN = credentials('docker-scout-token')
     }
     stages {
         stage('unit tests') {
@@ -63,7 +64,8 @@ pipeline {
                 
                 sh "docker pull ${REGISTRY_ADDRESS}/${PUBLISH_IMAGE}:${DOCKER_TAG}"
                 sh "docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy image localhost:5000/publish.build:${DOCKER_TAG}"
-                sh "docker scout cves localhost:5000/publish.build:${DOCKER_TAG}"
+                sh "echo ${DOCKER_SCOUT_TOKEN} | docker login -u ennajahmalek --password-stdin"
+                sh "docker scout cvedocker-scout-tokens localhost:5000/publish.build:${DOCKER_TAG}"
             }
         }
     }

@@ -11,5 +11,18 @@ pipeline {
             steps {
                 sh "docker compose -f Application/src/CI/docker-compose.yml build"            }
         }
+        stage('tag & push') {
+            steps {
+                sh """
+                    docker tag ${DOCKER_IMAGE}:${DOCKER_TAG} ${REGISTRY_ADDRESS}/${PUBLISH_IMAGE}:${DOCKER_TAG}
+                    docker push ${REGISTRY_ADDRESS}/${PUBLISH_IMAGE}:${DOCKER_TAG}
+                """
+            }
+        }
+        stage('test') {
+            steps {
+                sh "docker pull ${REGISTRY_ADDRESS}/${PUBLISH_IMAGE}:${DOCKER_TAG}"
+            }
+        }
     }
 }

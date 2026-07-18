@@ -11,8 +11,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/commandes")
@@ -33,18 +33,23 @@ public class CommandeController {
         model.addAttribute("etats", EtatCommande.values());
 
         Map<String, Long> etatCounts = new LinkedHashMap<>();
+        long maxEtatCount = 0;
         for (EtatCommande e : EtatCommande.values()) {
-            etatCounts.put(e.name(), commandes.stream().filter(c -> c.getEtat() == e).count());
+            long count = commandes.stream().filter(c -> c.getEtat() == e).count();
+            etatCounts.put(e.name(), count);
+            if (count > maxEtatCount) maxEtatCount = count;
         }
-        model.addAttribute("etatChartLabels", String.join(",", etatCounts.keySet()));
-        model.addAttribute("etatChartData", etatCounts.values().stream().map(String::valueOf).collect(Collectors.joining(",")));
+        model.addAttribute("etatCounts", etatCounts);
+        model.addAttribute("maxEtatCount", maxEtatCount);
 
         Map<String, BigDecimal> produitTotals = new LinkedHashMap<>();
+        BigDecimal maxProduitTotal = BigDecimal.ZERO;
         for (CommandeResponseDTO c : commandes) {
-            produitTotals.merge(c.getProduitNom(), c.getPrixTotal(), BigDecimal::add);
+            BigDecimal total = produitTotals.merge(c.getProduitNom(), c.getPrixTotal(), BigDecimal::add);
+            if (total.compareTo(maxProduitTotal) > 0) maxProduitTotal = total;
         }
-        model.addAttribute("produitChartLabels", String.join(",", produitTotals.keySet()));
-        model.addAttribute("produitChartData", produitTotals.values().stream().map(String::valueOf).collect(Collectors.joining(",")));
+        model.addAttribute("produitTotals", produitTotals);
+        model.addAttribute("maxProduitTotal", maxProduitTotal);
 
         return "commandes/list";
     }

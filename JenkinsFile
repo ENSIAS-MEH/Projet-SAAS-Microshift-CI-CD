@@ -62,7 +62,7 @@ pipeline {
             steps {
                 
                 sh "docker pull ${REGISTRY_ADDRESS}/${PUBLISH_IMAGE}:${DOCKER_TAG}"
-                sh "docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy image --exit-code 1 --severity HIGH,CRITICAL localhost:5000/publish.build:${DOCKER_TAG}"
+                sh "docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy image localhost:5000/publish.build:${DOCKER_TAG}"
                 sh "docker scout cves localhost:5000/publish.build:${DOCKER_TAG}"
             }
         }

@@ -18,6 +18,11 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
+    @ExceptionHandler(CommandeNonTrouveException.class)
+    public ResponseEntity<Object> handleCommandeNonTrouve(CommandeNonTrouveException ex) {
+        return build(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
     @ExceptionHandler(StockInsuffisantException.class)
     public ResponseEntity<Object> handleStockInsuffisant(StockInsuffisantException ex) {
         return build(HttpStatus.CONFLICT, ex.getMessage());

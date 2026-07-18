@@ -17,19 +17,9 @@ public class Commande implements Serializable {
     private Integer id; // [cite: 31]
 
   
-   // @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "usine_id", nullable = false) 
-   // private Usine usine; 
-
-    // Link to the Product (reused from Module 1) [cite: 34-35]
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "produit_id", nullable = false) 
     private Produit produit; 
-
-    
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false) 
-   // private User user; 
 
     @Column(nullable = false)
     private Integer quantite; 
@@ -66,15 +56,7 @@ public class Commande implements Serializable {
     public Commande() {
     }
 
- /*    public Commande(Usine usine, Produit produit, User user, Integer quantite, BigDecimal prixTotal) {
-        this.usine = usine;
-        this.produit = produit;
-        this.user = user;
-        this.quantite = quantite;
-        this.prixTotal = prixTotal;
-        this.etat = EtatCommande.EN_ATTENTE; // [cite: 51, 61]
-    }
-*/
+
   
     public Integer getId() {
         return id;
@@ -84,14 +66,7 @@ public class Commande implements Serializable {
         this.id = id;
     }
 
-  /*  public Usine getUsine() {
-        return usine;
-    }
 
-    public void setUsine(Usine usine) {
-        this.usine = usine;
-    }
-*/
     public Produit getProduit() {
         return produit;
     }
@@ -100,14 +75,7 @@ public class Commande implements Serializable {
         this.produit = produit;
     }
 
-  /*   public User getUser() {
-        return user;
-    }
 
-    public void setUser(User user) {
-        this.user = user;
-    }
-*/
     public Integer getQuantite() {
         return quantite;
     }

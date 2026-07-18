@@ -1,10 +1,10 @@
-FROM maven:3.8.7-eclipse-temurin-21 AS build
+FROM maven:3.9.8-eclipse-temurin-21 AS build
 WORKDIR /Application
 COPY pom.xml .
 RUN mvn dependency:go-offline
 COPY src ./src
 RUN mvn clean package -DskipTests
- 
+
 FROM eclipse-temurin:21-jre
 WORKDIR /Application
 COPY --from=build /Application/target/*.jar app.jar

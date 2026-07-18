@@ -101,16 +101,16 @@ public class CommandeService {
     }
 
     private CommandeResponseDTO toDTO(Commande c) {
-        return new CommandeResponseDTO(
-                c.getId(),
-                c.getProduit().getId(),
-                c.getProduit().getNom(),
-                c.getQuantite(),
-                c.getPrixTotal(),
-                c.getProduit().getPrixUnitaire(),
-                c.getEtat(),
-                c.getDateCreation(),
-                c.getDateMaj()
-        );
+        return new CommandeResponseDTO.Builder()
+                .id(c.getId())
+                .produitId(c.getProduit().getId())
+                .produitNom(c.getProduit().getNom())
+                .quantite(c.getQuantite())
+                .prixTotal(c.getPrixTotal())
+                .prixUnitaire(c.getProduit().getPrixUnitaire())
+                .etat(c.getEtat())
+                .dateCreation(c.getDateCreation())
+                .dateMaj(c.getDateMaj())
+                .build();
     }
 }

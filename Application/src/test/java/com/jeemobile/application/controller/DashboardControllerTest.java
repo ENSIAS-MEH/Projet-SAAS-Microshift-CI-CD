@@ -1,7 +1,6 @@
 package com.jeemobile.application.controller;
 
 import com.jeemobile.application.dto.DashboardDTO;
-import com.jeemobile.application.dto.ProduitResponseDTO;
 import com.jeemobile.application.entity.EtatCommande;
 import com.jeemobile.application.service.CommandeService;
 import com.jeemobile.application.service.DashboardService;

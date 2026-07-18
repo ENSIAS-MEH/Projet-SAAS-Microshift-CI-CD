@@ -39,8 +39,17 @@ class CommandeRestControllerTest {
 
     private CommandeResponseDTO createDTO(Integer id, String produitNom, Integer quantite,
                                            BigDecimal prixTotal, EtatCommande etat) {
-        return new CommandeResponseDTO(id, 1, produitNom, quantite, prixTotal,
-                new BigDecimal("10.00"), etat, LocalDateTime.now(), LocalDateTime.now());
+        return new CommandeResponseDTO.Builder()
+                .id(id)
+                .produitId(1)
+                .produitNom(produitNom)
+                .quantite(quantite)
+                .prixTotal(prixTotal)
+                .prixUnitaire(new BigDecimal("10.00"))
+                .etat(etat)
+                .dateCreation(LocalDateTime.now())
+                .dateMaj(LocalDateTime.now())
+                .build();
     }
 
     @Test
@@ -143,7 +152,7 @@ class CommandeRestControllerTest {
     void changerEtat_ShouldReturnUpdatedOrder() throws Exception {
         CommandeResponseDTO updated = createDTO(1, "Produit", 2,
                 new BigDecimal("20.00"), EtatCommande.VALIDEE);
-        when(commandeService.modifierEtat(eq(1), eq(EtatCommande.VALIDEE))).thenReturn(updated);
+        when(commandeService.modifierEtat(1, EtatCommande.VALIDEE)).thenReturn(updated);
 
         String json = "\"VALIDEE\"";
 
@@ -156,7 +165,7 @@ class CommandeRestControllerTest {
 
     @Test
     void changerEtat_WhenOrderNotFound_ShouldReturn404() throws Exception {
-        when(commandeService.modifierEtat(eq(999), eq(EtatCommande.VALIDEE)))
+        when(commandeService.modifierEtat(999, EtatCommande.VALIDEE))
                 .thenThrow(new CommandeNonTrouveException(999));
 
         String json = "\"VALIDEE\"";

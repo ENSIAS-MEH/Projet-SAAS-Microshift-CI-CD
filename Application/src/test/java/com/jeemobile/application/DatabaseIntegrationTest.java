@@ -51,9 +51,9 @@ class DatabaseIntegrationTest {
         assertEquals("Produit Test", created.getNom());
         assertEquals(10, created.getQuantite());
 
-        produitService.supprimer(created.getId());
-        assertThrows(ProduitNonTrouveException.class,
-                () -> produitService.findById(created.getId()));
+        Integer deletedId = created.getId();
+        produitService.supprimer(deletedId);
+        assertThrows(ProduitNonTrouveException.class, () -> produitService.findById(deletedId));
     }
 
     @Test

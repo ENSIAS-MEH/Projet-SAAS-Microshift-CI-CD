@@ -5,9 +5,7 @@ import com.jeemobile.application.dto.CommandeResponseDTO;
 import com.jeemobile.application.dto.ProduitRequestDTO;
 import com.jeemobile.application.dto.ProduitResponseDTO;
 import com.jeemobile.application.entity.EtatCommande;
-import com.jeemobile.application.exception.CommandeNonTrouveException;
 import com.jeemobile.application.exception.ProduitNonTrouveException;
-import com.jeemobile.application.exception.ProduitReferenceParCommandeException;
 import com.jeemobile.application.exception.StockInsuffisantException;
 import com.jeemobile.application.service.CommandeService;
 import com.jeemobile.application.service.ProduitService;
@@ -98,7 +96,8 @@ class ProduitServiceIntegrationTest {
         dto.setPrixUnitaire(new BigDecimal("5.00"));
         ProduitResponseDTO p = produitService.creer(dto);
 
-        assertThrows(StockInsuffisantException.class, () -> produitService.decrementerStock(p.getId(), 10));
+        Integer produitId = p.getId();
+        assertThrows(StockInsuffisantException.class, () -> produitService.decrementerStock(produitId, 10));
     }
 
     @Test
@@ -111,7 +110,8 @@ class ProduitServiceIntegrationTest {
 
         produitService.supprimer(p.getId());
 
-        assertThrows(ProduitNonTrouveException.class, () -> produitService.findById(p.getId()));
+        Integer deletedId = p.getId();
+        assertThrows(ProduitNonTrouveException.class, () -> produitService.findById(deletedId));
     }
 
     @Test
@@ -182,7 +182,8 @@ class ProduitServiceIntegrationTest {
 
         commandeService.modifierEtat(c.getId(), EtatCommande.ANNULEE);
 
-        assertThrows(IllegalStateException.class, () -> commandeService.modifierEtat(c.getId(), EtatCommande.VALIDEE));
+        Integer commandeId = c.getId();
+        assertThrows(IllegalStateException.class, () -> commandeService.modifierEtat(commandeId, EtatCommande.VALIDEE));
     }
 
     @Test

@@ -5,6 +5,7 @@ pipeline {
         PUBLISH_IMAGE = 'publish.build'
         DOCKER_TAG = "${env.BUILD_NUMBER}" 
         REGISTRY_ADDRESS = "localhost:5000"
+        SONAR_TOKEN = credentials('sonarqube-token-id')
     }
     stages {
         stage('build') {
@@ -19,15 +20,24 @@ pipeline {
                 """
             }
         }
-        stage('test') {
+        stage('sonarqube') {
             steps {
-                /* docker run -d --name sonarqube \
-  -p 9000:9000 \
-  -v sonarqube_data:/opt/sonarqube/data \
-  -v sonarqube_extensions:/opt/sonarqube/extensions \
-  -v sonarqube_logs:/opt/sonarqube/logs \
-  sonarqube:latest*/
+                dir('Application') {
+                    sh """
+                        mvn sonar:sonar \
+                        -Dsonar.projectKey=factorysaas \
+                        -Dsonar.host.url=http://localhost:9000 \
+                        -Dsonar.login=${SONAR_TOKEN}
+                    """
+                }
+            }
+        }
+        stage('security scans') {
+            steps {
+                
                 sh "docker pull ${REGISTRY_ADDRESS}/${PUBLISH_IMAGE}:${DOCKER_TAG}"
+                sh "docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy image --exit-code 1 --severity HIGH,CRITICAL localhost:5000/publish.build:${DOCKER_TAG}"
+                sh "docker scout cves localhost:5000/publish.build:${DOCKER_TAG}"
             }
         }
     }

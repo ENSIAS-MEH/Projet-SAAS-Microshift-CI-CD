@@ -65,7 +65,7 @@ pipeline {
                 sh "docker pull ${REGISTRY_ADDRESS}/${PUBLISH_IMAGE}:${DOCKER_TAG}"
                 sh "docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy image localhost:5000/publish.build:${DOCKER_TAG}"
                 sh "echo ${DOCKER_SCOUT_TOKEN} | docker login -u ennajahmalek --password-stdin"
-                sh "docker scout cvedocker-scout-tokens localhost:5000/publish.build:${DOCKER_TAG}"
+                sh "docker scout cve localhost:5000/publish.build:${DOCKER_TAG}"
             }
         }
     }

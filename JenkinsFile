@@ -13,7 +13,7 @@ pipeline {
         stage('unit tests') {
             steps {
                 dir('Application') {
-                    sh "mvn test -f Application/pom.xml"
+                    sh "mvn test -f pom.xml"
                 }
             }
             post {

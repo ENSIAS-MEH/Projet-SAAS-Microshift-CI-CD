@@ -6,6 +6,7 @@ pipeline {
         DOCKER_TAG = "${env.BUILD_NUMBER}" 
         REGISTRY_ADDRESS = "localhost:5000"
         SONAR_TOKEN = credentials('sonar-token-id')
+        NVD_API_KEY = credentials('nvd-api-key')
     }
     stages {
         stage('unit tests') {
@@ -24,7 +25,7 @@ pipeline {
         stage('dependency scan') {
             steps {
                 dir('Application') {
-                    sh "mvn org.owasp:dependency-check-maven:check"
+                    sh "mvn org.owasp:dependency-check-maven:check -DnvdApiKey=${NVD_API_KEY}"
                 }
             }
             post {

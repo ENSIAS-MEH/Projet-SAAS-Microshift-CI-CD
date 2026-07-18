@@ -25,30 +25,8 @@
                     <h3 class="box-title">Commandes par état</h3>
                 </div>
                 <div class="box-body">
-                    <th:block th:each="entry : ${etatCounts}">
-                        <th:block th:with="pct=${maxEtatCount > 0} ? T(java.lang.Math).floor(entry.value * 100.0 / maxEtatCount) : 0">
-                            <div class="row" style="margin-bottom: 8px;">
-                                <div class="col-xs-3 text-right" style="padding-right: 5px;">
-                                    <span class="label"
-                                          th:classappend="${entry.key == 'EN_ATTENTE'} ? 'label-warning' : ${entry.key == 'VALIDEE'} ? 'label-primary' : ${entry.key == 'EXPEDIEE'} ? 'label-success' : 'label-danger'"
-                                          th:text="${entry.key}">EN_ATTENTE</span>
-                                </div>
-                                <div class="col-xs-7" style="padding-left: 5px; padding-right: 5px;">
-                                    <div class="progress" style="margin: 0; height: 22px;">
-                                        <div class="progress-bar"
-                                             th:classappend="${entry.key == 'EN_ATTENTE'} ? 'progress-bar-warning' : ${entry.key == 'VALIDEE'} ? 'progress-bar-primary' : ${entry.key == 'EXPEDIEE'} ? 'progress-bar-success' : 'progress-bar-danger'"
-                                             th:style="'width: ' + ${pct} + '%'"
-                                             th:attr="aria-valuenow=${entry.value}, aria-valuemin=0, aria-valuemax=${maxEtatCount}"
-                                             th:text="${entry.value}">0</div>
-                                    </div>
-                                </div>
-                                <div class="col-xs-2 text-left" style="padding-left: 0;">
-                                    <span class="badge" th:text="${entry.value}">0</span>
-                                </div>
-                            </div>
-                        </th:block>
-                    </th:block>
-                    <p th:if="${maxEtatCount == 0}" class="text-center text-muted" style="margin: 10px 0;">
+                    <div style="max-width: 300px; margin: 0 auto;"><canvas id="pieChart" height="200"></canvas></div>
+                    <p th:if="${#lists.isEmpty(commandes)}" class="text-center text-muted" style="margin: 10px 0;">
                         Aucune commande pour le moment.
                     </p>
                 </div>
@@ -60,24 +38,22 @@
                     <h3 class="box-title">Répartition par produit (DH)</h3>
                 </div>
                 <div class="box-body">
-                    <th:block th:each="entry : ${produitTotals}">
-                        <th:block th:with="entryValue=${entry.value.doubleValue()}, maxValue=${maxProduitTotal.doubleValue()}, pct=${maxValue > 0} ? T(java.lang.Math).floor(entryValue * 100.0 / maxValue) : 0">
-                            <div class="row" style="margin-bottom: 6px;">
-                                <div class="col-xs-5 text-right" style="padding-right: 5px; line-height: 22px;" th:text="${entry.key}">Produit</div>
-                                <div class="col-xs-5" style="padding-left: 5px; padding-right: 5px;">
-                                    <div class="progress" style="margin: 0; height: 20px; background: #eaeaea;">
-                                        <div class="progress-bar progress-bar-success"
-                                             th:style="'width: ' + ${pct} + '%'"
-                                             th:attr="aria-valuenow=${entry.value}, aria-valuemin=0, aria-valuemax=${maxProduitTotal}"></div>
-                                    </div>
-                                </div>
-                                <div class="col-xs-2 text-left" style="padding-left: 0; line-height: 22px;">
-                                    <strong th:text="${#numbers.formatDecimal(entry.value, 1, 2)}">0.00</strong>
+                    <th:block th:each="entry : ${produitData}">
+                        <div class="row" style="margin-bottom: 6px;">
+                            <div class="col-xs-5 text-right" style="padding-right: 5px; line-height: 22px;" th:text="${entry.key}">Produit</div>
+                            <div class="col-xs-5" style="padding-left: 5px; padding-right: 5px;">
+                                <div class="progress" style="margin: 0; height: 20px; background: #eaeaea;">
+                                    <div class="progress-bar progress-bar-success"
+                                         th:style="'width: ' + ${entry.value.pct} + '%'"
+                                         th:attr="aria-valuenow=${entry.value.total}, aria-valuemin=0"></div>
                                 </div>
                             </div>
-                        </th:block>
+                            <div class="col-xs-2 text-left" style="padding-left: 0; line-height: 22px;">
+                                <strong th:text="${#numbers.formatDecimal(entry.value.total, 1, 2)}">0.00</strong>
+                            </div>
+                        </div>
                     </th:block>
-                    <p th:if="${produitTotals.isEmpty()}" class="text-center text-muted" style="margin: 10px 0;">
+                    <p th:if="${#lists.isEmpty(commandes)}" class="text-center text-muted" style="margin: 10px 0;">
                         Aucune commande pour le moment.
                     </p>
                 </div>
@@ -233,7 +209,8 @@
     </div>
 </div>
 
-<script>
+<th:block layout:fragment="scripts">
+<script th:inline="javascript">
 var sortCol = null;
 var sortAsc = true;
 
@@ -323,6 +300,31 @@ document.querySelectorAll('.clickable-row').forEach(function(row) {
         $('#modalDetail').modal('show');
     });
 });
+
+var etatData = [[${etatData}]];
+var labels = [];
+var counts = [];
+var bgColors = [];
+var colorMap = { EN_ATTENTE: '#f39c12', VALIDEE: '#3c8dbc', EXPEDIEE: '#00a65a', ANNULEE: '#dd4b39' };
+var labelMap = { EN_ATTENTE: 'En attente', VALIDEE: 'Validée', EXPEDIEE: 'Expédiée', ANNULEE: 'Annulée' };
+
+for (var key in etatData) {
+    if (etatData.hasOwnProperty(key)) {
+        labels.push(labelMap[key] || key);
+        counts.push(etatData[key].count);
+        bgColors.push(colorMap[key] || '#999');
+    }
+}
+
+var pieCtx = document.getElementById('pieChart');
+if (pieCtx) {
+    new Chart(pieCtx, {
+        type: 'pie',
+        data: { labels: labels, datasets: [{ data: counts, backgroundColor: bgColors }] },
+        options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+    });
+}
 </script>
+</th:block>
 </body>
 </html>

@@ -32,24 +32,44 @@ public class CommandeController {
         model.addAttribute("commandes", commandes);
         model.addAttribute("etats", EtatCommande.values());
 
-        Map<String, Long> etatCounts = new LinkedHashMap<>();
+        Map<String, Object> etatCounts = new LinkedHashMap<>();
         long maxEtatCount = 0;
         for (EtatCommande e : EtatCommande.values()) {
             long count = commandes.stream().filter(c -> c.getEtat() == e).count();
-            etatCounts.put(e.name(), count);
+            Map<String, Object> data = new LinkedHashMap<>();
+            data.put("count", count);
+            data.put("pct", 0);
+            etatCounts.put(e.name(), data);
             if (count > maxEtatCount) maxEtatCount = count;
         }
-        model.addAttribute("etatCounts", etatCounts);
-        model.addAttribute("maxEtatCount", maxEtatCount);
+        long finalMax = maxEtatCount;
+        etatCounts.forEach((k, v) -> {
+            Map<String, Object> data = (Map<String, Object>) v;
+            long count = (Long) data.get("count");
+            data.put("pct", finalMax > 0 ? Math.round(count * 100.0 / finalMax) : 0);
+        });
+        model.addAttribute("etatData", etatCounts);
 
-        Map<String, BigDecimal> produitTotals = new LinkedHashMap<>();
+        Map<String, Object> produitData = new LinkedHashMap<>();
         BigDecimal maxProduitTotal = BigDecimal.ZERO;
         for (CommandeResponseDTO c : commandes) {
-            BigDecimal total = produitTotals.merge(c.getProduitNom(), c.getPrixTotal(), BigDecimal::add);
-            if (total.compareTo(maxProduitTotal) > 0) maxProduitTotal = total;
+            produitData.putIfAbsent(c.getProduitNom(), new BigDecimal[]{BigDecimal.ZERO});
+            BigDecimal[] total = (BigDecimal[]) produitData.get(c.getProduitNom());
+            total[0] = total[0].add(c.getPrixTotal());
+            if (total[0].compareTo(maxProduitTotal) > 0) maxProduitTotal = total[0];
         }
-        model.addAttribute("produitTotals", produitTotals);
-        model.addAttribute("maxProduitTotal", maxProduitTotal);
+        BigDecimal finalMaxProd = maxProduitTotal;
+        Map<String, Object> produitFinal = new LinkedHashMap<>();
+        produitData.forEach((k, v) -> {
+            BigDecimal total = ((BigDecimal[]) v)[0];
+            Map<String, Object> data = new LinkedHashMap<>();
+            data.put("total", total);
+            data.put("pct", finalMaxProd.compareTo(BigDecimal.ZERO) > 0
+                    ? total.multiply(BigDecimal.valueOf(100)).divide(finalMaxProd, 0, RoundingMode.HALF_UP).longValue()
+                    : 0);
+            produitFinal.put(k, data);
+        });
+        model.addAttribute("produitData", produitFinal);
 
         return "commandes/list";
     }

@@ -5,7 +5,7 @@ pipeline {
         PUBLISH_IMAGE = 'publish.build'
         DOCKER_TAG = "${env.BUILD_NUMBER}" 
         REGISTRY_ADDRESS = "localhost:5000"
-        SONAR_TOKEN = credentials('sonarqube-token-id')
+        SONAR_TOKEN = credentials('sonar-token-id')
     }
     stages {
         stage('build') {

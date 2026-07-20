@@ -55,7 +55,7 @@ L'application est déployée en mode **multi-tenant** sur :
 
 - **Microshift** —une outils moins couteux en comparaison avec openshift, elle est une outil orchestration des conteneurs, isolation par namespace par usine cliente, dans le repertoire **Saas** nous avons les fichiers de configurations **\*.yaml** qui sont generare automatiquement via **MicroShift** , le script **boot.sh** est utilise pour deplaoyer un nouveau tennant via **./boot.sh <nom_tennant>** un counteneur (compose d'application springboot et SGBD Mysql ) avec un acces via un port alloue et cree
 
-- **Gestion des Logs ** <contin>
+- **Gestion des Logs ** avec un script **/SaaS/log.sh**, nous allons deployer un image loki, grafana et promtail pour le **tracking** des logs, vous pouvez voir la video ou on voit les logs pour les tennants trouve dans **MicroShift**
   
 
 ### Pipeline CI

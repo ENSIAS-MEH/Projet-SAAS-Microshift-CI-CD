@@ -1,0 +1,52 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"v1","kind":"Service","metadata":{"annotations":{},"name":"db","namespace":"factory-saas"},"spec":{"ports":[{"port":3306,"targetPort":3306}],"selector":{"app":"factory-db"}}}
+  creationTimestamp: 2026-07-19T11:45:39Z
+  managedFields:
+  - apiVersion: v1
+    fieldsType: FieldsV1
+    fieldsV1:
+      f:metadata:
+        f:annotations:
+          .: {}
+          f:kubectl.kubernetes.io/last-applied-configuration: {}
+      f:spec:
+        f:internalTrafficPolicy: {}
+        f:ports:
+          .: {}
+          k:{"port":3306,"protocol":"TCP"}:
+            .: {}
+            f:port: {}
+            f:protocol: {}
+            f:targetPort: {}
+        f:selector: {}
+        f:sessionAffinity: {}
+        f:type: {}
+    manager: oc
+    operation: Update
+    time: 2026-07-19T11:45:39Z
+  name: db
+  namespace: factory-saas
+  resourceVersion: "2698"
+  uid: ec1304ed-4c93-4cbc-9cf4-a347d0b53049
+spec:
+  clusterIP: 10.43.137.199
+  clusterIPs:
+  - 10.43.137.199
+  internalTrafficPolicy: Cluster
+  ipFamilies:
+  - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+  - port: 3306
+    protocol: TCP
+    targetPort: 3306
+  selector:
+    app: factory-db
+  sessionAffinity: None
+  type: ClusterIP
+status:
+  loadBalancer: {}

@@ -53,7 +53,10 @@ Application SaaS de gestion d'usine permettant à chaque client (usine) de gére
 
 L'application est déployée en mode **multi-tenant** sur :
 
-- **Microshift** —une outils moins couteux en comparaison avec openshift, elle est une outil orchestration des conteneurs, isolation par namespace par usine cliente
+- **Microshift** —une outils moins couteux en comparaison avec openshift, elle est une outil orchestration des conteneurs, isolation par namespace par usine cliente, dans le repertoire **Saas** nous avons les fichiers de configurations **\*.yaml** qui sont generare automatiquement via **MicroShift** , le script **boot.sh** est utilise pour deplaoyer un nouveau tennant via **./boot.sh <nom_tennant>** un counteneur (compose d'application springboot et SGBD Mysql ) avec un acces via un port alloue et cree
+
+- **Gestion des Logs ** <contin>
+  
 
 ### Pipeline CI
 **Stages:**

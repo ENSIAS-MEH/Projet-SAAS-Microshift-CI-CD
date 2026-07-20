@@ -70,12 +70,17 @@ L'application est déployée en mode **multi-tenant** sur :
 
 ### Sécurité & Analyse de Code
 - **SonarQube** — qualité et couverture de code
+- ![Pipeline diagram](Conception/Images/sonarqube.png)
+
 - **OWASP Dependency-Check** — vulnérabilités dans les dépendances
-- **SAST**  Trivy — analyse statique de sécurité
+- **SAST**  Trivy et docker scout— analyse statique de sécurité
+  ![Pipeline diagram](Conception/Images/trivy-scan.png)
+  ![Pipeline diagram](Conception/Images/docker-scout.png)
 - **Authentification** obligatoire pour l'accès plateforme et serveur
 
 ---
 ![Pipeline diagram](Conception/Images/pipeline_jenkins.png)
+
 ## Modèle de données (résumé)
 
 | Entité | Champs clés |

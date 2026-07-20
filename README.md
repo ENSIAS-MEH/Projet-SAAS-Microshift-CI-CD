@@ -72,7 +72,7 @@ L'application est déployée en mode **multi-tenant** sur :
 - **Authentification** obligatoire pour l'accès plateforme et serveur
 
 ---
-
+![Pipeline diagram](Conception/Images/pipeline_jenkins.png)
 ## Modèle de données (résumé)
 
 | Entité | Champs clés |

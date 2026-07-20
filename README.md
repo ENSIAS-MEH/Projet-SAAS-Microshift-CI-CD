@@ -75,7 +75,10 @@ L'application est déployée en mode **multi-tenant** sur :
 - **OWASP Dependency-Check** — vulnérabilités dans les dépendances
 - **SAST**  Trivy et docker scout— analyse statique de sécurité
   ![Pipeline diagram](Conception/Images/trivy-scan.png)
+- on observe que l'application n'a pas des vulnerabilites des packages selon trivy mais l'image contient **63 MEDIUM** et **3** **LOW** selon l'image **Ubuntu 26.04**
+
   ![Pipeline diagram](Conception/Images/docker-scout.png)
+- docker scout utilise d'autre maniere et il a aussi trouve aucun probleme 
 - **Authentification** obligatoire pour l'accès plateforme et serveur
 
 ---

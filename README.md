@@ -4,15 +4,15 @@
 > Equipe de Projet: ENNAJAH Malek, SBAYI Douae, ELHOUDAIGUI Ilyas, MEJBER Ahmed Amine
 ---
 
-## 📋 Description
+## Description
 
 Application SaaS de gestion d'usine permettant à chaque client (usine) de gérer de manière indépendante ses **utilisateurs**, son **stock de produits** et ses **commandes**, le tout avec un système complet de **traçabilité et de logs**.
 
 ---
 
-## 🏭 Fonctionnalités principales
+## Fonctionnalités principales
 
-### 👥 Gestion des Utilisateurs & Rôles
+### Gestion des Utilisateurs & Rôles
 - Création et gestion des comptes utilisateurs (nom, contact, email, mot de passe)
 - Système de rôles granulaire par utilisateur :
   - Ajout / modification / annulation de commandes
@@ -20,17 +20,17 @@ Application SaaS de gestion d'usine permettant à chaque client (usine) de gére
   - Accès administrateur
 - L'administrateur dispose de tous les droits par défaut
 
-### 📦 Gestion du Stock (Produits)
+### Gestion du Stock (Produits)
 - Ajout, modification et suppression de produits
 - Suivi des quantités, prix unitaires et descriptions
 - Consultation des dashboards de ressources
 
-### 🛒 Gestion des Commandes
+### Gestion des Commandes
 - Création, modification et annulation de commandes
 - Suivi de l'état des commandes et du prix total
 - Consultation des dashboards de commandes
 
-### 📜 Logs & Historique
+### logs & Historique
 - Historique complet de toutes les actions utilisateurs (avec horodatage)
 - `Historique_Commandes` : traçabilité des commandes
 - `Historique_Stockage` : traçabilité des mouvements de stock
@@ -38,7 +38,7 @@ Application SaaS de gestion d'usine permettant à chaque client (usine) de gére
 
 ---
 
-## 🔐 Acteurs du système
+## Acteurs du système
 
 | Acteur | Accès |
 |---|---|
@@ -49,43 +49,31 @@ Application SaaS de gestion d'usine permettant à chaque client (usine) de gére
 
 ---
 
-## 🧱 Architecture & Déploiement SaaS
+## Architecture & Déploiement SaaS
 
 L'application est déployée en mode **multi-tenant** sur :
 
-- **OpenShift** ou **Kubernetes** — orchestration des conteneurs, isolation par namespace par usine cliente
+- **Microshift** —une outils moins couteux en comparaison avec openshift, elle est une outil orchestration des conteneurs, isolation par namespace par usine cliente
 
-### ⚙️ Pipeline CI/CD
+### Pipeline CI
+**Stages:**
+1. **Unit Tests** — runs `mvn test`, les tests unitaires pour valider le build
+2. **Dependency Scan** — OWASP Dependency-Check against project dependencies (CVEs), cle NVD API est necessaire
+3. **Build** — on fait le build d'application Spring Boot + MySQL via Docker Compose
+4. **Tag & Push** — ajoute d'un tag et publication dans un registre locale pour les tests "registry2"
+5. **Static Analysis** — SonarQube analysis (les bugs, test coverage ~= 97% couverage)
+6. **Security Scans** — Trivy and Docker Scout scan l'image pour chercher les vulnerabilites
+7. **Publish** — publication de l'image `:latest` et push a Docker Hub
 
-```
-Code Push
-   │
-   ▼
-Build (Docker)
-   │
-   ▼
-Analyse Statique ──► SonarQube (qualité du code, bugs, code smells)
-   │                ► SAST (analyse de vulnérabilités)
-   │                ► Dependency Check (CVEs des dépendances)
-   ▼
-Tests Automatisés
-   │
-   ▼
-Build Image & Push (Registry)
-   │
-   ▼
-Déploiement (OpenShift / Kubernetes)
-```
-
-### 🛡️ Sécurité & Analyse de Code
+### Sécurité & Analyse de Code
 - **SonarQube** — qualité et couverture de code
 - **OWASP Dependency-Check** — vulnérabilités dans les dépendances
-- **SAST** (ex: Semgrep, Trivy) — analyse statique de sécurité
+- **SAST**  Trivy — analyse statique de sécurité
 - **Authentification** obligatoire pour l'accès plateforme et serveur
 
 ---
 
-## 🗄️ Modèle de données (résumé)
+## Modèle de données (résumé)
 
 | Entité | Champs clés |
 |---|---|

@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/produits")
 public class ProduitController {
 
+    private static final String REDIRECT_PRODUITS = "redirect:/produits";
+
     private final ProduitService produitService;
 
     public ProduitController(ProduitService produitService) {
@@ -32,7 +34,7 @@ public class ProduitController {
     @PostMapping
     public String save(@Valid @ModelAttribute("produit") ProduitRequestDTO dto) {
         produitService.creer(dto);
-        return "redirect:/produits";
+        return REDIRECT_PRODUITS;
     }
 
     @GetMapping("/edit/{id}")
@@ -51,12 +53,12 @@ public class ProduitController {
     @PostMapping("/{id}")
     public String update(@PathVariable Integer id, @Valid @ModelAttribute("produit") ProduitRequestDTO dto) {
         produitService.modifier(id, dto);
-        return "redirect:/produits";
+        return REDIRECT_PRODUITS;
     }
 
     @GetMapping("/delete/{id}")
     public String delete(@PathVariable Integer id) {
         produitService.supprimer(id);
-        return "redirect:/produits";
+        return REDIRECT_PRODUITS;
     }
 }

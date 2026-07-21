@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -15,6 +16,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ProduitNonTrouveException.class)
     public ResponseEntity<Object> handleNonTrouve(ProduitNonTrouveException ex) {
+        return build(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
+    @ExceptionHandler(CommandeNonTrouveException.class)
+    public ResponseEntity<Object> handleCommandeNonTrouve(CommandeNonTrouveException ex) {
         return build(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
@@ -44,7 +50,7 @@ public class GlobalExceptionHandler {
         ex.getBindingResult().getFieldErrors().forEach(err ->
                 erreurs.put(err.getField(), err.getDefaultMessage()));
         Map<String, Object> body = new HashMap<>();
-        body.put("timestamp", LocalDateTime.now());
+        body.put("timestamp", LocalDateTime.now(ZoneId.systemDefault()));
         body.put("status", HttpStatus.BAD_REQUEST.value());
         body.put("erreurs", erreurs);
         return ResponseEntity.badRequest().body(body);
@@ -52,7 +58,7 @@ public class GlobalExceptionHandler {
 
     private ResponseEntity<Object> build(HttpStatus status, String message) {
         Map<String, Object> body = new HashMap<>();
-        body.put("timestamp", LocalDateTime.now());
+        body.put("timestamp", LocalDateTime.now(ZoneId.systemDefault()));
         body.put("status", status.value());
         body.put("message", message);
         return ResponseEntity.status(status).body(body);

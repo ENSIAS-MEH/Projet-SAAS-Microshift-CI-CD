@@ -18,6 +18,7 @@
     <link rel="stylesheet" th:href="@{/plugins/daterangepicker/daterangepicker-bs3.css}"/>
     <link rel="stylesheet" th:href="@{/plugins/bootstrap-wysihtml5/bootstrap3-wysihtml5.min.css}"/>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <!--[if lt IE 9]>
     <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
     <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
@@ -27,11 +28,11 @@
 <div class="wrapper">
 
     <header class="main-header">
-        <div th:replace="fragments/header"></div>
+        <div th:replace="~{fragments/header}"></div>
     </header>
 
     <aside class="main-sidebar">
-        <div th:replace="fragments/main-sidebar"></div>
+        <div th:replace="~{fragments/main-sidebar}"></div>
     </aside>
 
     <div class="content-wrapper">
@@ -50,7 +51,7 @@
     </footer>
 
     <aside class="control-sidebar control-sidebar-dark">
-        <div th:replace="fragments/control-sidebar"></div>
+        <div th:replace="~{fragments/control-sidebar}"></div>
     </aside>
 </div>
 
@@ -75,5 +76,6 @@
 <script th:src="@{/plugins/fastclick/fastclick.js}"></script>
 <script th:src="@{/dist/js/app.min.js}"></script>
 <script th:src="@{/dist/js/demo.js}"></script>
+<div layout:fragment="scripts"></div>
 </body>
 </html>

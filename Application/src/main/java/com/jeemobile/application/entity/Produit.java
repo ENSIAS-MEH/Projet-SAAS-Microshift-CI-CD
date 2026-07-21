@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Entity
 @Table(name = "produit")
@@ -32,7 +33,10 @@ public class Produit implements Serializable {
     @Column(name = "date_maj")
     private LocalDateTime dateMaj;
 
-    public Produit() {}
+    public Produit() {
+    }
+
+
 
     public Integer getId() { return id; }
     public void setId(Integer id) { this.id = id; }
@@ -57,7 +61,7 @@ public class Produit implements Serializable {
 
     @PrePersist
     protected void onCreate() {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(ZoneId.systemDefault());
         this.dateCreation = now;
         this.dateMaj = now;
         if (this.quantite == null) {
@@ -67,6 +71,6 @@ public class Produit implements Serializable {
 
     @PreUpdate
     protected void onUpdate() {
-        this.dateMaj = LocalDateTime.now();
+        this.dateMaj = LocalDateTime.now(ZoneId.systemDefault());
     }
 }

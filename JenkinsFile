@@ -5,11 +5,78 @@ pipeline {
         PUBLISH_IMAGE = 'publish.build'
         DOCKER_TAG = "${env.BUILD_NUMBER}" 
         REGISTRY_ADDRESS = "localhost:5000"
+        SONAR_TOKEN = credentials('sonar-token-id')
+        NVD_API_KEY = credentials('nvd-api-key')
+        DOCKER_SCOUT_TOKEN = credentials('docker-scout-token')
+        DOCKERHUB_USER = credentials('dockerhub-user')
+        DOCKERHUB_PAT = credentials('dockerhub-token')
     }
     stages {
+        stage('unit tests') {
+            steps {
+                dir('Application') {
+                    sh "mvn test -f pom.xml"
+                }
+            }
+            post {
+                always {
+                    junit '**/target/surefire-reports/*.xml'
+                }
+            }
+        }
+
+        stage('dependency scan') {
+            steps {
+                dir('Application') {
+                    sh "mvn org.owasp:dependency-check-maven:check -DnvdApiKey=${NVD_API_KEY}"
+                }
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'Application/target/dependency-check-report.html', allowEmptyArchive: true
+                }
+            }
+        }
         stage('build') {
             steps {
                 sh "docker compose -f Application/src/CI/docker-compose.yml build"            }
+        }
+        stage('tag & push') {
+            steps {
+                sh """
+                    docker tag ${DOCKER_IMAGE}:${DOCKER_TAG} ${REGISTRY_ADDRESS}/${PUBLISH_IMAGE}:${DOCKER_TAG}
+                    docker push ${REGISTRY_ADDRESS}/${PUBLISH_IMAGE}:${DOCKER_TAG}
+                """
+            }
+        }
+        stage('sonarqube') {
+            steps {
+                dir('Application') {
+                    sh """
+                        mvn test sonar:sonar \
+                        -Dsonar.projectKey=factorysaas \
+                        -Dsonar.host.url=http://localhost:9000 \
+                        -Dsonar.login=${SONAR_TOKEN}
+                    """
+                }
+            }
+        }
+        stage('security scans') {
+            steps {
+                
+                sh "docker pull ${REGISTRY_ADDRESS}/${PUBLISH_IMAGE}:${DOCKER_TAG}"
+                sh "docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy image localhost:5000/publish.build:${DOCKER_TAG}"
+                sh "echo ${DOCKER_SCOUT_TOKEN} | docker login -u ennajahmalek --password-stdin"
+                sh "docker scout cves localhost:5000/publish.build:${DOCKER_TAG}"
+            }
+        }
+        stage('publish to docker hub')
+        {
+            steps { 
+                sh "docker tag ${DOCKER_IMAGE}:${DOCKER_TAG} ${DOCKERHUB_USER}/${PUBLISH_IMAGE}:latest"
+                sh "echo ${DOCKERHUB_PAT} | docker login -u ${DOCKERHUB_USER} --password-stdin"
+                sh "docker push ${DOCKERHUB_USER}/${PUBLISH_IMAGE}:latest"
+            }
         }
     }
 }

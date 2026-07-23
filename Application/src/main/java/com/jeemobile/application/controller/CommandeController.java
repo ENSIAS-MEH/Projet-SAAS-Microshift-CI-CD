@@ -3,12 +3,14 @@ package com.jeemobile.application.controller;
 import com.jeemobile.application.dto.CommandeRequestDTO;
 import com.jeemobile.application.dto.CommandeResponseDTO;
 import com.jeemobile.application.entity.EtatCommande;
+import com.jeemobile.application.security.UserSession;
 import com.jeemobile.application.service.CommandeService;
 import com.jeemobile.application.service.ProduitService;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -22,10 +24,12 @@ public class CommandeController {
 
     private final CommandeService commandeService;
     private final ProduitService produitService;
+    private final UserSession userSession;
 
-    public CommandeController(CommandeService commandeService, ProduitService produitService) {
+    public CommandeController(CommandeService commandeService, ProduitService produitService, UserSession userSession) {
         this.commandeService = commandeService;
         this.produitService = produitService;
+        this.userSession = userSession;
     }
 
     @GetMapping
@@ -78,25 +82,40 @@ public class CommandeController {
 
     @GetMapping("/new")
     public String showForm(Model model) {
+        if (!userSession.isAdmin() && !userSession.peutAjouterCommande()) {
+            return REDIRECT_COMMANDES;
+        }
         model.addAttribute("commande", new CommandeRequestDTO());
         model.addAttribute("produits", produitService.findAll());
         return "commandes/form";
     }
 
     @PostMapping
-    public String save(@Valid @ModelAttribute("commande") CommandeRequestDTO dto) {
+    public String save(@Valid @ModelAttribute("commande") CommandeRequestDTO dto, RedirectAttributes redirectAttributes) {
+        if (!userSession.isAdmin() && !userSession.peutAjouterCommande()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Action non autorisée.");
+            return REDIRECT_COMMANDES;
+        }
         commandeService.creer(dto);
         return REDIRECT_COMMANDES;
     }
 
     @PostMapping("/{id}/etat")
-    public String changerEtat(@PathVariable Integer id, @RequestParam EtatCommande etat) {
+    public String changerEtat(@PathVariable Integer id, @RequestParam EtatCommande etat, RedirectAttributes redirectAttributes) {
+        if (!userSession.isAdmin() && !userSession.peutModifierCommande()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Action non autorisée.");
+            return REDIRECT_COMMANDES;
+        }
         commandeService.modifierEtat(id, etat);
         return REDIRECT_COMMANDES;
     }
 
     @GetMapping("/delete/{id}")
-    public String delete(@PathVariable Integer id) {
+    public String delete(@PathVariable Integer id, RedirectAttributes redirectAttributes) {
+        if (!userSession.isAdmin() && !userSession.peutAnnulerCommande()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Action non autorisée.");
+            return REDIRECT_COMMANDES;
+        }
         commandeService.supprimer(id);
         return REDIRECT_COMMANDES;
     }

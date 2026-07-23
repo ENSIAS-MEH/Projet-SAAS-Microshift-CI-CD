@@ -34,6 +34,7 @@ public class UserController {
         Pageable pageable = PageRequest.of(page, 10);
         Page<User> utilisateurs = userService.listerParUsine(userSession.getUsineId(), pageable);
         model.addAttribute("utilisateurs", utilisateurs);
+        model.addAttribute("currentUserId", userSession.getUserId());
         return "admin/utilisateurs";
     }
 

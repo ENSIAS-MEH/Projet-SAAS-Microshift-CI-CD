@@ -17,6 +17,7 @@
     </ol>
 </section>
 <div layout:fragment="content">
+    <div class="alert alert-danger" th:if="${errorMessage}" th:text="${errorMessage}"></div>
 
     <div class="row">
         <div class="col-md-6">
@@ -65,7 +66,10 @@
         <div class="box-header">
             <h3 class="box-title">Liste des commandes</h3>
             <div class="box-tools">
-                <a th:href="@{/commandes/new}" class="btn btn-primary btn-sm">
+                <div class="input-group input-group-sm" style="width: 200px; display: inline-block; vertical-align: middle;">
+                    <input type="text" id="searchInput" class="form-control" placeholder="Rechercher...">
+                </div>
+                <a th:if="${@userSession.isAdmin() or @userSession.peutAjouterCommande()}" th:href="@{/commandes/new}" class="btn btn-primary btn-sm">
                     <i class="fa fa-plus"></i> Nouvelle commande
                 </a>
             </div>
@@ -110,10 +114,10 @@
                         <td th:text="${#temporals.format(c.dateCreation, 'dd/MM/yyyy HH:mm')}">01/01/2026</td>
                         <td>
                             <div class="btn-group btn-group-xs">
-                                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                                <button th:if="${@userSession.isAdmin() or @userSession.peutModifierCommande()}" type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
                                     État <span class="caret"></span>
                                 </button>
-                                <ul class="dropdown-menu">
+                                <ul th:if="${@userSession.isAdmin() or @userSession.peutModifierCommande()}" class="dropdown-menu">
                                     <li th:each="etat : ${etats}">
                                         <form th:action="@{/commandes/{id}/etat(id=${c.id})}" method="post">
                                             <input type="hidden" name="etat" th:value="${etat.name()}"/>
@@ -123,7 +127,7 @@
                                         </form>
                                     </li>
                                 </ul>
-                                <button class="btn btn-xs btn-danger btn-delete"
+                                <button th:if="${@userSession.isAdmin() or @userSession.peutAnnulerCommande()}" class="btn btn-xs btn-danger btn-delete"
                                         th:data-delete-url="@{/commandes/delete/{id}(id=${c.id})}"
                                         data-toggle="modal" data-target="#modalSupprimer">
                                     <i class="fa fa-trash"></i>
@@ -248,6 +252,19 @@ function sortTable(col, asc) {
 document.querySelectorAll('.btn-delete').forEach(function(btn) {
     btn.addEventListener('click', function() {
         document.getElementById('formSupprimer').action = btn.getAttribute('data-delete-url');
+    });
+});
+
+document.getElementById('searchInput').addEventListener('keyup', function() {
+    var query = this.value.toLowerCase();
+    var rows = document.querySelectorAll('#commandesTable tbody tr');
+    rows.forEach(function(row) {
+        if (row.style.display === 'none') return;
+        var text = '';
+        for (var i = 0; i < row.cells.length - 1; i++) {
+            text += row.cells[i].textContent.toLowerCase() + ' ';
+        }
+        row.style.display = text.indexOf(query) > -1 ? '' : 'none';
     });
 });
 

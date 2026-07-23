@@ -43,7 +43,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr th:each="u : ${utilisateurs.content}">
+                    <tr th:each="u : ${utilisateurs.content}" th:if="${u.id != currentUserId}">
                         <td th:text="${u.id}">1</td>
                         <td th:text="${u.username}">username</td>
                         <td th:text="${u.nom}">Nom</td>

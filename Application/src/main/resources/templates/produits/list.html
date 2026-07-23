@@ -19,6 +19,43 @@
 <div layout:fragment="content">
     <div class="alert alert-danger" th:if="${errorMessage}" th:text="${errorMessage}"></div>
 
+<div class="modal fade" id="modalSupprimer" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Confirmer la suppression</h4>
+            </div>
+            <div class="modal-body">
+                <p>Êtes-vous sûr de vouloir supprimer ce produit ?</p>
+            </div>
+            <div class="modal-footer">
+                <form id="formSupprimer" method="get">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-danger"><i class="fa fa-trash"></i> Supprimer</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalDeleteError" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Suppression impossible</h4>
+            </div>
+            <div class="modal-body">
+                <p id="deleteErrorMessage">Vous ne pouvez pas supprimer ce produit car il est référencé par au moins une commande.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Fermer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
     <div class="row">
         <div class="col-md-12">
             <div class="box box-primary">
@@ -68,10 +105,10 @@
                             <a th:if="${@userSession.isAdmin() or @userSession.peutModifierProduit()}" th:href="@{/produits/edit/{id}(id=${produit.id})}" class="btn btn-xs btn-info">
                                 <i class="fa fa-edit"></i> Edit
                             </a>
-                            <a th:if="${@userSession.isAdmin() or @userSession.peutSupprimerProduit()}" th:href="@{/produits/delete/{id}(id=${produit.id})}" class="btn btn-xs btn-danger"
-                               onclick="return confirm('Confirmer la suppression ?')">
+                            <button th:if="${@userSession.isAdmin() or @userSession.peutSupprimerProduit()}" type="button" class="btn btn-xs btn-danger btn-delete"
+                                    th:data-delete-url="@{/produits/delete/{id}(id=${produit.id})}">
                                 <i class="fa fa-trash"></i> Delete
-                            </a>
+                            </button>
                         </td>
                     </tr>
                 </tbody>
@@ -140,6 +177,27 @@ function sortTable(col, asc) {
         return 0;
     });
     rows.forEach(function(r) { tbody.appendChild(r); });
+}
+
+document.querySelectorAll('.btn-delete').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        var form = document.getElementById('formSupprimer');
+        if (form) {
+            form.action = btn.getAttribute('data-delete-url');
+            $('#modalSupprimer').modal('show');
+        } else {
+            if (confirm('Supprimer ce produit ?')) {
+                window.location.href = btn.getAttribute('data-delete-url');
+            }
+        }
+    });
+});
+
+var deleteError = [[${deleteError}]];
+if (deleteError) {
+    document.getElementById('deleteErrorMessage').textContent = deleteError;
+    $('#modalDeleteError').modal('show');
 }
 
 document.getElementById('searchInput').addEventListener('keyup', function() {

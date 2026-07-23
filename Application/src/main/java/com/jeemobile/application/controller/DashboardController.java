@@ -9,6 +9,9 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 @Controller
 @RequestMapping("/dashboard")
 public class DashboardController {
@@ -32,6 +35,13 @@ public class DashboardController {
         model.addAttribute("commandesEnAttente", commandeService.countByEtat(EtatCommande.EN_ATTENTE));
         model.addAttribute("commandesValidees", commandeService.countByEtat(EtatCommande.VALIDEE));
         model.addAttribute("commandes", commandeService.findAll());
+
+        Map<String, Long> etatCounts = new LinkedHashMap<>();
+        for (EtatCommande e : EtatCommande.values()) {
+            etatCounts.put(e.name(), commandeService.countByEtat(e));
+        }
+        model.addAttribute("etatCounts", etatCounts);
+
         return "dashboard";
     }
 }

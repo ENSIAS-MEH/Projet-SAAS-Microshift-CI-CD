@@ -106,7 +106,11 @@ public class CommandeController {
             redirectAttributes.addFlashAttribute("errorMessage", "Action non autorisée.");
             return REDIRECT_COMMANDES;
         }
-        commandeService.modifierEtat(id, etat);
+        try {
+            commandeService.modifierEtat(id, etat);
+        } catch (IllegalStateException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
         return REDIRECT_COMMANDES;
     }
 

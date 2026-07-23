@@ -3,6 +3,7 @@ package com.jeemobile.application.controller;
 import com.jeemobile.application.dto.DashboardDTO;
 import com.jeemobile.application.dto.ProduitRequestDTO;
 import com.jeemobile.application.dto.ProduitResponseDTO;
+import com.jeemobile.application.exception.ProduitReferenceParCommandeException;
 import com.jeemobile.application.security.UserSession;
 import com.jeemobile.application.service.ProduitService;
 import jakarta.validation.Valid;
@@ -98,7 +99,12 @@ public class ProduitController {
             redirectAttributes.addFlashAttribute("errorMessage", "Action non autorisée.");
             return REDIRECT_PRODUITS;
         }
-        produitService.supprimer(id);
+        try {
+            produitService.supprimer(id);
+        } catch (ProduitReferenceParCommandeException e) {
+            redirectAttributes.addFlashAttribute("deleteError", e.getMessage());
+            return REDIRECT_PRODUITS;
+        }
         return REDIRECT_PRODUITS;
     }
 }

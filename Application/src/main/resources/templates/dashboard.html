@@ -132,15 +132,20 @@
             </div>
         </div>
         <div class="col-md-6">
-            <div class="box box-danger" th:if="${dashboard.nombreProduitsEnRupture > 0}">
+            <div class="box box-success">
                 <div class="box-header with-border">
-                    <h3 class="box-title text-danger">Produits en rupture</h3>
+                    <h3 class="box-title">Quantité par produit</h3>
                 </div>
                 <div class="box-body">
-                    <ul>
-                        <li th:each="p : ${dashboard.produitsEnRupture}"
-                            th:text="${p.nom} + ' — quantité restante : ' + ${p.quantite}"></li>
-                    </ul>
+                    <canvas id="chartQuantite" height="250"></canvas>
+                    <div th:if="${dashboard.nombreProduitsEnRupture > 0}" class="alert alert-danger alert-dismissible" style="margin-top: 15px; margin-bottom: 0;">
+                        <button type="button" class="close" data-dismiss="alert">&times;</button>
+                        <h4><i class="icon fa fa-warning"></i> Produits en rupture</h4>
+                        <ul style="margin-bottom: 0;">
+                            <li th:each="p : ${dashboard.produitsEnRupture}"
+                                th:text="${p.nom} + ' — quantité restante : ' + ${p.quantite}"></li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
@@ -222,24 +227,133 @@
         </div>
     </div>
 
-    <script>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="box box-warning">
+                <div class="box-header with-border">
+                    <h3 class="box-title">Répartition des commandes</h3>
+                </div>
+                <div class="box-body">
+                    <canvas id="chartPolar" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="box box-info">
+                <div class="box-header with-border">
+                    <h3 class="box-title">Prix unitaire par produit</h3>
+                </div>
+                <div class="box-body">
+                    <canvas id="chartPrix" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        var etatCounts = [[${etatCounts}]];
+        var polarLabels = [];
+        var polarData = [];
+        var polarColors = [];
+        var polarMap = { EN_ATTENTE: '#f39c12', VALIDEE: '#3c8dbc', EXPEDIEE: '#00a65a', ANNULEE: '#dd4b39' };
+        var polarLabelMap = { EN_ATTENTE: 'En attente', VALIDEE: 'Validée', EXPEDIEE: 'Expédiée', ANNULEE: 'Annulée' };
+        for (var key in etatCounts) {
+            if (etatCounts.hasOwnProperty(key)) {
+                polarLabels.push(polarLabelMap[key] || key);
+                polarData.push(etatCounts[key]);
+                polarColors.push(polarMap[key] || '#999');
+            }
+        }
+        var polarCtx = document.getElementById('chartPolar');
+        if (polarCtx) {
+            new Chart(polarCtx, {
+                type: 'polarArea',
+                data: {
+                    labels: polarLabels,
+                    datasets: [{ data: polarData, backgroundColor: polarColors }]
+                },
+                options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+            });
+        }
+
         fetch('/api/produits')
-            .then(r => r.json())
-            .then(data => {
-                const labels = data.map(p => p.nom);
-                const valeurs = data.map(p => p.quantite * p.prixUnitaire);
-                new Chart(document.getElementById('chartValeur'), {
-                    type: 'bar',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: 'Valeur du stock (DH)',
-                            data: valeurs,
-                            backgroundColor: 'rgba(54, 162, 235, 0.6)'
-                        }]
-                    },
-                    options: { responsive: true }
-                });
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                var labels = data.map(function(p) { return p.nom; });
+
+                var chartValeur = document.getElementById('chartValeur');
+                if (chartValeur) {
+                    var valeurs = data.map(function(p) { return p.quantite * p.prixUnitaire; });
+                    new Chart(chartValeur, {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Valeur du stock (DH)',
+                                data: valeurs,
+                                backgroundColor: 'rgba(54, 162, 235, 0.6)'
+                            }]
+                        },
+                        options: { responsive: true }
+                    });
+                }
+
+                var chartPrix = document.getElementById('chartPrix');
+                if (chartPrix) {
+                    var prix = data.map(function(p) { return p.prixUnitaire; });
+                    var barColors = prix.map(function() {
+                        var r = Math.floor(Math.random() * 200);
+                        var g = Math.floor(Math.random() * 200);
+                        var b = Math.floor(Math.random() * 200);
+                        return 'rgba(' + r + ',' + g + ',' + b + ',0.7)';
+                    });
+                    new Chart(chartPrix, {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Prix unitaire (DH)',
+                                data: prix,
+                                backgroundColor: barColors
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            indexAxis: 'y',
+                            plugins: { legend: { display: false } },
+                            scales: { x: { beginAtZero: true } }
+                        }
+                    });
+                }
+
+                var chartQuantite = document.getElementById('chartQuantite');
+                if (chartQuantite) {
+                    var quantites = data.map(function(p) { return p.quantite; });
+                    var qColors = quantites.map(function(q) { return q <= 5 ? '#dd4b39' : '#00a65a'; });
+                    new Chart(chartQuantite, {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Quantité en stock',
+                                data: quantites,
+                                backgroundColor: qColors
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            indexAxis: 'y',
+                            plugins: { legend: { display: false } },
+                            scales: { x: { beginAtZero: true, ticks: { precision: 0 } } }
+                        }
+                    });
+                }
+            })
+            .catch(function() {
+                document.getElementById('chartValeur').parentElement.innerHTML = '<p class="text-muted text-center">Erreur de chargement des données</p>';
+                document.getElementById('chartPrix').parentElement.innerHTML = '<p class="text-muted text-center">Erreur de chargement des données</p>';
+                var qc = document.getElementById('chartQuantite');
+                if (qc) qc.parentElement.innerHTML = '<p class="text-muted text-center">Erreur de chargement des données</p>';
             });
     </script>
 </div>

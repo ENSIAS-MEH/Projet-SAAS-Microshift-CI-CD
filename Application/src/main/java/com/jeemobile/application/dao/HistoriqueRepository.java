@@ -12,7 +12,8 @@ import com.jeemobile.application.enums.TypeAction;
 
 @Repository
 public interface HistoriqueRepository extends JpaRepository<Historique, Integer> {
-
+    Page<Historique> findByUsineIdAndTypeActionAndTimestampBetweenOrderByTimestampDesc(
+            Integer usineId, TypeAction typeAction, LocalDateTime start, LocalDateTime end, Pageable pageable);
     Page<Historique> findByUsineIdOrderByTimestampDesc(Integer usineId, Pageable pageable);
 
     Page<Historique> findByUsineIdAndTypeActionOrderByTimestampDesc(

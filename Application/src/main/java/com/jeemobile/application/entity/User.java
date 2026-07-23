@@ -58,11 +58,31 @@ public class User implements Serializable {
 
     @Column(name = "date_creation", nullable = false, updatable = false)
     private LocalDateTime dateCreation;
+    @Column(name = "tentatives_echouees", nullable = false)
+    private Integer tentativesEchouees = 0;
+
+    @Column(name = "verrouille_jusqua")
+    private LocalDateTime verrouilleJusqua;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Roles roles;
 
     public User() {
+    }
+    public Integer getTentativesEchouees() {
+        return tentativesEchouees;
+    }
+
+    public void setTentativesEchouees(Integer tentativesEchouees) {
+        this.tentativesEchouees = tentativesEchouees;
+    }
+
+    public LocalDateTime getVerrouilleJusqua() {
+        return verrouilleJusqua;
+    }
+
+    public void setVerrouilleJusqua(LocalDateTime verrouilleJusqua) {
+        this.verrouilleJusqua = verrouilleJusqua;
     }
 
     public User(Usine usine, String username, String password, String nom, String email) {
@@ -85,6 +105,9 @@ public class User implements Serializable {
         }
         if (this.isAdmin == null) {
             this.isAdmin = Boolean.FALSE;
+        }
+        if (this.tentativesEchouees == null) {
+            this.tentativesEchouees = 0;
         }
     }
 
@@ -182,7 +205,6 @@ public class User implements Serializable {
     public Roles getRoles() {
         return roles;
     }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

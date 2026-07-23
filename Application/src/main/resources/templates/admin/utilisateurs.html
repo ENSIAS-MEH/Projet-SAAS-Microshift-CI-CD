@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="layout">
+<head>
+    <title>Utilisateurs</title>
+</head>
+<body>
+<section layout:fragment="header">
+    <h1>
+        Utilisateurs
+        <small>Gestion des comptes de l'usine</small>
+    </h1>
+    <ol class="breadcrumb">
+        <li><a th:href="@{/dashboard}"><i class="fa fa-dashboard"></i> Home</a></li>
+        <li class="active">Utilisateurs</li>
+    </ol>
+</section>
+<div layout:fragment="content">
+
+    <div class="alert alert-success" th:if="${successMessage}" th:text="${successMessage}"></div>
+    <div class="alert alert-danger" th:if="${errorMessage}" th:text="${errorMessage}"></div>
+
+    <div class="box box-primary">
+        <div class="box-header with-border">
+            <h3 class="box-title">Liste des utilisateurs</h3>
+            <div class="box-tools pull-right">
+                <a th:href="@{/admin/utilisateurs/nouveau}" class="btn btn-primary btn-sm">
+                    <i class="fa fa-plus"></i> Nouvel utilisateur
+                </a>
+            </div>
+        </div>
+        <div class="box-body">
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nom d'utilisateur</th>
+                        <th>Nom</th>
+                        <th>Email</th>
+                        <th>Statut</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="u : ${utilisateurs.content}">
+                        <td th:text="${u.id}">1</td>
+                        <td th:text="${u.username}">username</td>
+                        <td th:text="${u.nom}">Nom</td>
+                        <td th:text="${u.email}">email@exemple.com</td>
+                        <td>
+                            <span class="label label-success" th:if="${u.actif}">Actif</span>
+                            <span class="label label-default" th:unless="${u.actif}">Inactif</span>
+                        </td>
+                        <td>
+                            <a th:href="@{/admin/utilisateurs/{id}/modifier(id=${u.id})}" class="btn btn-xs btn-info">
+                                <i class="fa fa-pencil"></i>
+                            </a>
+                            <a th:href="@{/admin/securite/{id}(id=${u.id})}" class="btn btn-xs btn-warning">
+                                <i class="fa fa-lock"></i>
+                            </a>
+                            <form th:action="@{/admin/utilisateurs/{id}/desactiver(id=${u.id})}" method="post"
+                                  style="display:inline" th:if="${u.actif}">
+                                <button type="submit" class="btn btn-xs btn-default"
+                                        onclick="return confirm('Désactiver cet utilisateur ?')">
+                                    <i class="fa fa-ban"></i>
+                                </button>
+                            </form>
+                            <form th:action="@{/admin/utilisateurs/{id}/activer(id=${u.id})}" method="post"
+                                  style="display:inline" th:unless="${u.actif}">
+                                <button type="submit" class="btn btn-xs btn-success">
+                                    <i class="fa fa-check"></i>
+                                </button>
+                            </form>
+                            <form th:action="@{/admin/utilisateurs/{id}/supprimer(id=${u.id})}" method="post"
+                                  style="display:inline">
+                                <button type="submit" class="btn btn-xs btn-danger"
+                                        onclick="return confirm('Supprimer définitivement cet utilisateur ?')">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <ul class="pagination">
+                <li th:each="i : ${#numbers.sequence(0, utilisateurs.totalPages - 1)}"
+                    th:classappend="${i == utilisateurs.number} ? 'active'">
+                    <a th:href="@{/admin/utilisateurs(page=${i})}" th:text="${i + 1}">1</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+</body>
+</html>

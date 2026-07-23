@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="layout">
+<head>
+    <title>Permissions</title>
+</head>
+<body>
+<section layout:fragment="header">
+    <h1>
+        Permissions
+        <small th:text="${user.username}">username</small>
+    </h1>
+    <ol class="breadcrumb">
+        <li><a th:href="@{/dashboard}"><i class="fa fa-dashboard"></i> Home</a></li>
+        <li><a th:href="@{/admin/securite}">Sécurité</a></li>
+        <li class="active">Permissions</li>
+    </ol>
+</section>
+<div layout:fragment="content">
+
+    <div class="box box-primary">
+        <div class="box-header with-border">
+            <h3 class="box-title">
+                Permissions de <span th:text="${user.nom}">Nom</span>
+                (<span th:text="${user.username}">username</span>)
+            </h3>
+        </div>
+        <div class="box-body">
+            <form th:action="@{/admin/securite/{id}(id=${user.id})}" method="post">
+
+                <h4>Commandes</h4>
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" name="peutAjouterCommande"
+                               th:checked="${roles != null and roles.peutAjouterCommande}">
+                        Ajouter des commandes
+                    </label>
+                </div>
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" name="peutModifierCommande"
+                               th:checked="${roles != null and roles.peutModifierCommande}">
+                        Modifier des commandes
+                    </label>
+                </div>
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" name="peutAnnulerCommande"
+                               th:checked="${roles != null and roles.peutAnnulerCommande}">
+                        Annuler des commandes
+                    </label>
+                </div>
+
+                <h4>Produits</h4>
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" name="peutAjouterProduit"
+                               th:checked="${roles != null and roles.peutAjouterProduit}">
+                        Ajouter des produits
+                    </label>
+                </div>
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" name="peutModifierProduit"
+                               th:checked="${roles != null and roles.peutModifierProduit}">
+                        Modifier des produits
+                    </label>
+                </div>
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" name="peutSupprimerProduit"
+                               th:checked="${roles != null and roles.peutSupprimerProduit}">
+                        Supprimer des produits
+                    </label>
+                </div>
+
+                <h4>Administration</h4>
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" name="estAdmin"
+                               th:checked="${roles != null and roles.estAdmin}">
+                        <strong>Administrateur</strong> (accès complet : logs, sécurité, gestion des utilisateurs)
+                    </label>
+                </div>
+
+                <br>
+                <button type="submit" class="btn btn-primary">Enregistrer les permissions</button>
+                <a th:href="@{/admin/securite}" class="btn btn-default">Annuler</a>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>

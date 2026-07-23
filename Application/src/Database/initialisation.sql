@@ -101,7 +101,7 @@ CREATE INDEX idx_commande_etat   ON commande(etat);
 CREATE INDEX idx_hist_ts         ON historique(timestamp);
  
 INSERT INTO user (username, password, nom, contact, email, is_admin)
-VALUES ('admin', '$2a$10$ik0xEVRnr0FS1UHNLwvNuObWT1NzjRXWSGev8n5Bye0xgmAbFSbTu', 'Administrateur', '0600000000', 'admin@demo.local', TRUE);
+VALUES ('admin', '$2a$12$OZT2RdoGLZprNKAcVraDAuQXO8O6vH5lHsphCwq6tF8b8F/GSyoka', 'Administrateur', '0600000000', 'admin@demo.local', TRUE);
 INSERT INTO roles (user_id, peut_ajouter_commande, peut_modifier_commande, peut_annuler_commande,
                     peut_ajouter_produit, peut_modifier_produit, peut_supprimer_produit, est_admin)
 VALUES (1, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE);

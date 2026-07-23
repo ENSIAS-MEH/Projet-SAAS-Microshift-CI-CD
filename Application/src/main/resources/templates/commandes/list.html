@@ -114,10 +114,10 @@
                         <td th:text="${#temporals.format(c.dateCreation, 'dd/MM/yyyy HH:mm')}">01/01/2026</td>
                         <td>
                             <div class="btn-group btn-group-xs">
-                                <button th:if="${@userSession.isAdmin() or @userSession.peutModifierCommande()}" type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                                <button th:if="${(c.etat.name() != 'ANNULEE') and (@userSession.isAdmin() or @userSession.peutModifierCommande())}" type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
                                     État <span class="caret"></span>
                                 </button>
-                                <ul th:if="${@userSession.isAdmin() or @userSession.peutModifierCommande()}" class="dropdown-menu">
+                                <ul th:if="${(c.etat.name() != 'ANNULEE') and (@userSession.isAdmin() or @userSession.peutModifierCommande())}" class="dropdown-menu">
                                     <li th:each="etat : ${etats}">
                                         <form th:action="@{/commandes/{id}/etat(id=${c.id})}" method="post">
                                             <input type="hidden" name="etat" th:value="${etat.name()}"/>
@@ -127,9 +127,8 @@
                                         </form>
                                     </li>
                                 </ul>
-                                <button th:if="${@userSession.isAdmin() or @userSession.peutAnnulerCommande()}" class="btn btn-xs btn-danger btn-delete"
-                                        th:data-delete-url="@{/commandes/delete/{id}(id=${c.id})}"
-                                        data-toggle="modal" data-target="#modalSupprimer">
+                                <button th:if="${@userSession.isAdmin() or @userSession.peutAnnulerCommande()}" type="button" class="btn btn-xs btn-danger btn-delete"
+                                        th:data-delete-url="@{/commandes/delete/{id}(id=${c.id})}">
                                     <i class="fa fa-trash"></i>
                                 </button>
                             </div>
@@ -218,19 +217,19 @@
 var sortCol = null;
 var sortAsc = true;
 
-document.getElementById('commandesTable').querySelectorAll('.sortable').forEach(function(th) {
-    th.addEventListener('click', function() {
-        var col = th.getAttribute('data-sort');
-        if (sortCol === col) sortAsc = !sortAsc;
-        else { sortCol = col; sortAsc = true; }
-        sortTable(col, sortAsc);
-        var icon = th.querySelector('i');
-        icon.className = sortAsc ? 'fa fa-sort-asc' : 'fa fa-sort-desc';
-    });
+$(document).on('click', '#commandesTable .sortable', function() {
+    var th = this;
+    var col = th.getAttribute('data-sort');
+    if (sortCol === col) sortAsc = !sortAsc;
+    else { sortCol = col; sortAsc = true; }
+    sortTable(col, sortAsc);
+    var icon = th.querySelector('i');
+    if (icon) icon.className = sortAsc ? 'fa fa-sort-asc' : 'fa fa-sort-desc';
 });
 
 function sortTable(col, asc) {
     var tbody = document.querySelector('#commandesTable tbody');
+    if (!tbody) return;
     var rows = Array.from(tbody.querySelectorAll('tr'));
     rows.sort(function(a, b) {
         var va, vb;
@@ -250,12 +249,22 @@ function sortTable(col, asc) {
 }
 
 document.querySelectorAll('.btn-delete').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-        document.getElementById('formSupprimer').action = btn.getAttribute('data-delete-url');
+    btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        var url = btn.getAttribute('data-delete-url');
+        var form = document.querySelector('#modalSupprimer form');
+        if (form) {
+            form.action = url;
+            $('#modalSupprimer').modal('show');
+        } else {
+            if (confirm('Supprimer cette commande ?')) {
+                window.location.href = url;
+            }
+        }
     });
 });
 
-document.getElementById('searchInput').addEventListener('keyup', function() {
+$(document).on('keyup', '#searchInput', function() {
     var query = this.value.toLowerCase();
     var rows = document.querySelectorAll('#commandesTable tbody tr');
     rows.forEach(function(row) {
@@ -268,36 +277,41 @@ document.getElementById('searchInput').addEventListener('keyup', function() {
     });
 });
 
-document.querySelectorAll('.clickable-row').forEach(function(row) {
-    row.addEventListener('click', function(e) {
-        if (e.target.closest('.btn-group')) return;
-        var id = row.getAttribute('data-id');
-        var produitId = row.getAttribute('data-produit-id');
-        document.getElementById('detailId').textContent = id;
-        document.getElementById('detailProduit').textContent = row.getAttribute('data-produit-nom');
-        document.getElementById('detailQuantite').textContent = row.getAttribute('data-quantite');
-        document.getElementById('detailPrixUnitaire').textContent = parseFloat(row.getAttribute('data-prix-unitaire')).toFixed(2) + ' DH';
-        document.getElementById('detailPrixTotal').textContent = parseFloat(row.getAttribute('data-prix-total')).toFixed(2) + ' DH';
-        document.getElementById('detailDate').textContent = row.getAttribute('data-date');
-        document.getElementById('detailDateMaj').textContent = row.getAttribute('data-date-maj');
+$(document).on('click', '.clickable-row', function(e) {
+    if ($(e.target).closest('.btn-group').length) return;
+    var row = this;
+    var id = row.getAttribute('data-id');
+    var produitId = row.getAttribute('data-produit-id');
+    $('#detailId').text(id);
+    $('#detailProduit').text(row.getAttribute('data-produit-nom'));
+    $('#detailQuantite').text(row.getAttribute('data-quantite'));
+    $('#detailPrixUnitaire').text(parseFloat(row.getAttribute('data-prix-unitaire')).toFixed(2) + ' DH');
+    $('#detailPrixTotal').text(parseFloat(row.getAttribute('data-prix-total')).toFixed(2) + ' DH');
+    $('#detailDate').text(row.getAttribute('data-date'));
+    $('#detailDateMaj').text(row.getAttribute('data-date-maj'));
 
-        var etat = row.getAttribute('data-etat');
-        var etatLbl = { EN_ATTENTE: 'En attente', VALIDEE: 'Validée', EXPEDIEE: 'Expédiée', ANNULEE: 'Annulée' };
-        var etatCls = { EN_ATTENTE: 'label-warning', VALIDEE: 'label-primary', EXPEDIEE: 'label-success', ANNULEE: 'label-danger' };
-        document.getElementById('detailEtatTitle').textContent = 'État actuel';
-        document.getElementById('detailEtatBadge').innerHTML = '<span class="label ' + (etatCls[etat] || 'label-default') + '" style="font-size:24px;padding:12px 24px;">' + (etatLbl[etat] || etat) + '</span>';
+    var etat = row.getAttribute('data-etat');
+    var etatLbl = { EN_ATTENTE: 'En attente', VALIDEE: 'Validée', EXPEDIEE: 'Expédiée', ANNULEE: 'Annulée' };
+    var etatCls = { EN_ATTENTE: 'label-warning', VALIDEE: 'label-primary', EXPEDIEE: 'label-success', ANNULEE: 'label-danger' };
+    $('#detailEtatTitle').text('État actuel');
+    $('#detailEtatBadge').html('<span class="label ' + (etatCls[etat] || 'label-default') + '" style="font-size:24px;padding:12px 24px;">' + (etatLbl[etat] || etat) + '</span>');
 
-        var tbody = document.getElementById('historiqueBody');
-        tbody.innerHTML = '<tr><td colspan="5" class="text-center">Chargement...</td></tr>';
+    var tbody = document.getElementById('historiqueBody');
+
+        function setTbody(html) {
+            if (tbody) tbody.innerHTML = html;
+        }
+
+        setTbody('<tr><td colspan="5" class="text-center">Chargement...</td></tr>');
 
         fetch('/api/commandes/produit/' + produitId)
             .then(function(r) { return r.json(); })
             .then(function(data) {
                 if (data.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Aucun historique</td></tr>';
+                    setTbody('<tr><td colspan="5" class="text-center text-muted">Aucun historique</td></tr>');
                     return;
                 }
-                tbody.innerHTML = '';
+                setTbody('');
                 data.forEach(function(h) {
                     var tr = document.createElement('tr');
                     if (h.id === parseInt(id)) tr.style.fontWeight = 'bold';
@@ -307,15 +321,14 @@ document.querySelectorAll('.clickable-row').forEach(function(row) {
                         '<td>' + h.prixTotal.toFixed(2) + ' DH</td>' +
                         '<td><span class="label ' + (cls[h.etat] || 'label-default') + '">' + h.etat + '</span></td>' +
                         '<td>' + new Date(h.dateCreation).toLocaleString('fr-FR') + '</td>';
-                    tbody.appendChild(tr);
+                    if (tbody) tbody.appendChild(tr);
                 });
             })
             .catch(function() {
-                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Erreur de chargement</td></tr>';
+                setTbody('<tr><td colspan="5" class="text-center text-danger">Erreur de chargement</td></tr>');
             });
 
         $('#modalDetail').modal('show');
-    });
 });
 
 var etatData = [[${etatData}]];

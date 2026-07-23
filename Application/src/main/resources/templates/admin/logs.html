@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="layout">
+<head>
+    <title>Journaux</title>
+</head>
+<body>
+<section layout:fragment="header">
+    <h1>
+        Journaux d'activité
+        <small>Historique des actions</small>
+    </h1>
+    <ol class="breadcrumb">
+        <li><a th:href="@{/dashboard}"><i class="fa fa-dashboard"></i> Home</a></li>
+        <li class="active">Journaux</li>
+    </ol>
+</section>
+<div layout:fragment="content">
+
+    <div class="box box-default">
+        <div class="box-header with-border">
+            <h3 class="box-title">Filtres</h3>
+        </div>
+        <div class="box-body">
+            <form th:action="@{/admin/logs}" method="get" class="form-inline">
+                <div class="form-group">
+                    <label>Type</label>
+                    <select name="type" class="form-control">
+                        <option value="">Tous</option>
+                        <option th:each="t : ${types}" th:value="${t}" th:text="${t}"
+                                th:selected="${t == typeSelectionne}"></option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Du</label>
+                    <input type="datetime-local" name="debut" class="form-control" th:value="${debut}">
+                </div>
+                <div class="form-group">
+                    <label>Au</label>
+                    <input type="datetime-local" name="fin" class="form-control" th:value="${fin}">
+                </div>
+                <button type="submit" class="btn btn-primary">Filtrer</button>
+                <a th:href="@{/admin/logs}" class="btn btn-default">Réinitialiser</a>
+            </form>
+        </div>
+    </div>
+
+    <div class="box box-primary">
+        <div class="box-header with-border">
+            <h3 class="box-title">Résultats</h3>
+        </div>
+        <div class="box-body">
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Utilisateur</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="log : ${logs.content}">
+                        <td th:text="${#temporals.format(log.timestamp, 'dd/MM/yyyy HH:mm')}">01/01/2026</td>
+                        <td>
+                            <span class="label label-info" th:text="${log.typeAction}">TYPE</span>
+                        </td>
+                        <td th:text="${log.user != null ? log.user.username : 'Système'}">username</td>
+                        <td th:text="${log.description}">Description</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <ul class="pagination">
+                <li th:each="i : ${#numbers.sequence(0, logs.totalPages - 1)}"
+                    th:classappend="${i == logs.number} ? 'active'">
+                    <a th:href="@{/admin/logs(page=${i}, type=${typeSelectionne})}" th:text="${i + 1}">1</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+</body>
+</html>

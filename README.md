@@ -6,7 +6,7 @@
 
 ## Description
 
-Application SaaS de gestion d'usine permettant à chaque client (usine) de gérer de manière indépendante ses **utilisateurs**, son **stock de produits** et ses **commandes**, le tout avec un système complet de **traçabilité et de logs**, les videos sont trouvable dans le dossier **Demo** ou via le lien **https://drive.google.com/drive/folders/1_sfNaTCRYerHDwzrtFOSLfdmLxB2lbw1?usp=sharing**.
+Application SaaS(Application Springboot avec un frontend thymeleaf)  de gestion d'usine permettant à chaque client (usine) de gérer de manière indépendante ses **utilisateurs**, son **stock de produits** et ses **commandes**, le tout avec un système complet de **traçabilité et de logs**, les videos sont trouvable dans le dossier **Demo** ou via le lien **https://drive.google.com/drive/folders/1_sfNaTCRYerHDwzrtFOSLfdmLxB2lbw1?usp=sharing**.
 
 ---
 
